@@ -337,3 +337,124 @@
   font-size: 12px;
   color: var(--color-text-muted);
 }
+
+// Progress indicators
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.progressBar {
+  height: 8px;
+  background: var(--color-bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+
+  &.progressPaused {
+    background: var(--color-warning, #f59e0b);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.rateLimitWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--color-warning-light, rgba(245, 158, 11, 0.1));
+  border: 1px solid var(--color-warning, #f59e0b);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--color-warning, #f59e0b);
+  font-weight: 500;
+}
+
+.rateLimitIcon {
+  font-size: 16px;
+}
+
+.progressDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.currentAction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.actionLabel {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.actionValue {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+
+  strong {
+    color: var(--color-primary);
+  }
+}
+
+.recentResults {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.recentLabel {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.recentItems {
+  display: flex;
+  gap: 6px;
+}
+
+.recentItem {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+
+  &.recentSuccess {
+    background: var(--color-success-light);
+    color: var(--color-success);
+  }
+
+  &.recentFailed {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+  }
+}

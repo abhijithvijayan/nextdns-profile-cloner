@@ -39,8 +39,23 @@ interface SyncPreview {
 type SyncTarget = 'both' | 'denylist' | 'allowlist';
 
 const DELAY_MS = 500;
+const RATE_LIMIT_DELAY_MS = 2000;
+const MAX_RETRIES = 3;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+interface ProgressState {
+  phase: 'fetching' | 'calculating';
+  current: number;
+  total: number;
+  currentProfileName?: string;
+}
+
+interface RateLimitState {
+  isRateLimited: boolean;
+  retryCount: number;
+  waitingUntil?: number;
+}
 
 export function SyncLists() {
   const { profiles } = useAuth();
@@ -52,6 +67,12 @@ export function SyncLists() {
   const [operations, setOperations] = useState<SyncOperation[]>([]);
   const [completedCount, setCompletedCount] = useState(0);
   const [error, setError] = useState('');
+  const [analysisProgress, setAnalysisProgress] = useState<ProgressState | null>(null);
+  const [currentOperation, setCurrentOperation] = useState<SyncOperation | null>(null);
+  const [rateLimitState, setRateLimitState] = useState<RateLimitState>({
+    isRateLimited: false,
+    retryCount: 0,
+  });
 
   const handleProfileToggle = (profileId: string) => {
     setSelectedProfiles((prev) =>
@@ -140,6 +161,7 @@ export function SyncLists() {
     setError('');
     setPreview(null);
     setOperations([]);
+    setAnalysisProgress(null);
 
     const targetProfiles =
       selectedProfiles.length > 0
@@ -156,7 +178,16 @@ export function SyncLists() {
     try {
       const allData: ProfileDataMap = {};
 
-      for (const profile of targetProfiles) {
+      // Fetch profile data with progress tracking
+      for (let i = 0; i < targetProfiles.length; i++) {
+        const profile = targetProfiles[i];
+        setAnalysisProgress({
+          phase: 'fetching',
+          current: i + 1,
+          total: targetProfiles.length,
+          currentProfileName: profile.name,
+        });
+
         const data = await api.getProfile(profile.id);
         allData[profile.id] = {
           name: profile.name,
@@ -168,6 +199,13 @@ export function SyncLists() {
           ),
         };
       }
+
+      // Update progress to calculating phase
+      setAnalysisProgress({
+        phase: 'calculating',
+        current: targetProfiles.length,
+        total: targetProfiles.length,
+      });
 
       const denylistCanonical = getCanonicalDomains(allData, 'denylist');
       const allowlistCanonical = getCanonicalDomains(allData, 'allowlist');
@@ -187,6 +225,7 @@ export function SyncLists() {
       setError(err instanceof Error ? err.message : 'Failed to analyze profiles');
     } finally {
       setIsAnalyzing(false);
+      setAnalysisProgress(null);
     }
   };
 
@@ -210,25 +249,61 @@ export function SyncLists() {
     setOperations(allOperations);
     setCompletedCount(0);
     setIsSyncing(true);
+    setCurrentOperation(null);
+    setRateLimitState({ isRateLimited: false, retryCount: 0 });
 
     for (let i = 0; i < allOperations.length; i++) {
       const op = allOperations[i];
 
-      try {
-        if (op.type === 'add') {
-          await api.addDomain(op.profileId, op.domain, op.listType, op.shouldBeActive);
-        } else {
-          await api.updateDomainStatus(op.profileId, op.domain, op.listType, op.shouldBeActive);
-        }
+      // Set current operation for live progress display
+      setCurrentOperation(op);
 
+      let success = false;
+      let lastError: string | undefined;
+
+      // Retry loop for rate limiting
+      for (let attempt = 0; attempt < MAX_RETRIES && !success; attempt++) {
+        try {
+          if (op.type === 'add') {
+            await api.addDomain(op.profileId, op.domain, op.listType, op.shouldBeActive);
+          } else {
+            await api.updateDomainStatus(op.profileId, op.domain, op.listType, op.shouldBeActive);
+          }
+          success = true;
+          setRateLimitState({ isRateLimited: false, retryCount: 0 });
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          lastError = errorMessage;
+
+          // Check for rate limit error
+          const isRateLimit = errorMessage.toLowerCase().includes('ratelimit') ||
+                              errorMessage.includes('429') ||
+                              errorMessage.toLowerCase().includes('too many');
+
+          if (isRateLimit && attempt < MAX_RETRIES - 1) {
+            // Show rate limit state and wait
+            setRateLimitState({
+              isRateLimited: true,
+              retryCount: attempt + 1,
+              waitingUntil: Date.now() + RATE_LIMIT_DELAY_MS,
+            });
+            await sleep(RATE_LIMIT_DELAY_MS);
+          } else if (!isRateLimit) {
+            // Non-rate-limit error, don't retry
+            break;
+          }
+        }
+      }
+
+      if (success) {
         setOperations((prev) =>
           prev.map((o, idx) => (idx === i ? { ...o, status: 'success' } : o))
         );
-      } catch (err) {
+      } else {
         setOperations((prev) =>
           prev.map((o, idx) =>
             idx === i
-              ? { ...o, status: 'failed', error: err instanceof Error ? err.message : 'Unknown error' }
+              ? { ...o, status: 'failed', error: lastError }
               : o
           )
         );
@@ -236,13 +311,15 @@ export function SyncLists() {
 
       setCompletedCount(i + 1);
 
-      // Rate limiting
+      // Rate limiting delay between requests
       if (i < allOperations.length - 1) {
         await sleep(DELAY_MS);
       }
     }
 
     setIsSyncing(false);
+    setCurrentOperation(null);
+    setRateLimitState({ isRateLimited: false, retryCount: 0 });
     setPreview(null);
   };
 
@@ -346,6 +423,44 @@ export function SyncLists() {
         </div>
       </Card>
 
+      {/* Analysis Progress Card */}
+      {isAnalyzing && analysisProgress && (
+        <Card>
+          <CardHeader
+            title="Analyzing Profiles"
+            description={
+              analysisProgress.phase === 'fetching'
+                ? `Fetching profile data (${analysisProgress.current}/${analysisProgress.total})`
+                : 'Calculating sync operations...'
+            }
+          />
+          <div className={styles.progressContainer}>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{
+                  width: `${(analysisProgress.current / analysisProgress.total) * 100}%`,
+                }}
+              />
+            </div>
+            <div className={styles.progressDetails}>
+              {analysisProgress.phase === 'fetching' && analysisProgress.currentProfileName && (
+                <div className={styles.currentAction}>
+                  <span className={styles.actionLabel}>Fetching:</span>
+                  <span className={styles.actionValue}>{analysisProgress.currentProfileName}</span>
+                </div>
+              )}
+              {analysisProgress.phase === 'calculating' && (
+                <div className={styles.currentAction}>
+                  <span className={styles.actionLabel}>Status:</span>
+                  <span className={styles.actionValue}>Comparing domain lists...</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {preview && (
         <Card>
           <CardHeader
@@ -428,6 +543,72 @@ export function SyncLists() {
                 ? `Syncing... (${completedCount}/${totalOps})`
                 : `Execute Sync (${totalOps} operations)`}
             </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Live Sync Progress Card */}
+      {isSyncing && (
+        <Card>
+          <CardHeader
+            title="Sync in Progress"
+            description={`${completedCount} of ${totalOps} operations completed`}
+          />
+          <div className={styles.progressContainer}>
+            <div className={styles.progressBar}>
+              <div
+                className={`${styles.progressFill} ${rateLimitState.isRateLimited ? styles.progressPaused : ''}`}
+                style={{
+                  width: `${totalOps > 0 ? (completedCount / totalOps) * 100 : 0}%`,
+                }}
+              />
+            </div>
+            {rateLimitState.isRateLimited && (
+              <div className={styles.rateLimitWarning}>
+                <span className={styles.rateLimitIcon}>⏳</span>
+                <span>Rate limited - retrying (attempt {rateLimitState.retryCount}/{MAX_RETRIES})...</span>
+              </div>
+            )}
+            {currentOperation && (
+              <div className={styles.progressDetails}>
+                <div className={styles.currentAction}>
+                  <span className={styles.actionLabel}>Current:</span>
+                  <span className={styles.actionValue}>
+                    {currentOperation.type === 'add' ? 'Adding' : 'Updating'}{' '}
+                    <strong>{currentOperation.domain}</strong>
+                  </span>
+                </div>
+                <div className={styles.currentAction}>
+                  <span className={styles.actionLabel}>Profile:</span>
+                  <span className={styles.actionValue}>{currentOperation.profileName}</span>
+                </div>
+                <div className={styles.currentAction}>
+                  <span className={styles.actionLabel}>List:</span>
+                  <span className={styles.actionValue}>
+                    {currentOperation.listType === 'denylist' ? 'Denylist' : 'Allowlist'}
+                  </span>
+                </div>
+              </div>
+            )}
+            <div className={styles.recentResults}>
+              <span className={styles.recentLabel}>Recent:</span>
+              <div className={styles.recentItems}>
+                {operations
+                  .filter((op) => op.status === 'success' || op.status === 'failed')
+                  .slice(-5)
+                  .map((op, i) => (
+                    <span
+                      key={i}
+                      className={`${styles.recentItem} ${
+                        op.status === 'success' ? styles.recentSuccess : styles.recentFailed
+                      }`}
+                      title={`${op.domain} - ${op.profileName}`}
+                    >
+                      {op.status === 'success' ? '✓' : '✗'}
+                    </span>
+                  ))}
+              </div>
+            </div>
           </div>
         </Card>
       )}
