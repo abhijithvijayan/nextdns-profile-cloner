@@ -53,6 +53,28 @@
   border-radius: 20px;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.githubLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--color-text-muted);
+  border-radius: 8px;
+  transition: all var(--transition);
+
+  &:hover {
+    color: var(--color-text);
+    background: var(--color-bg-tertiary);
+  }
+}
+
 .nav {
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
