@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { Button } from '../Button';
 import { Card, CardHeader } from '../Card';
-import type { Profile, ListType } from '@/lib/types';
+import type { ListType } from '@/lib/types';
 import styles from './SyncLists.module.scss';
 
 interface ProfileDataMap {
@@ -59,6 +59,15 @@ export function SyncLists() {
         ? prev.filter((id) => id !== profileId)
         : [...prev, profileId]
     );
+    setPreview(null);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedProfiles.length === profiles.length) {
+      setSelectedProfiles([]);
+    } else {
+      setSelectedProfiles(profiles.map((p) => p.id));
+    }
     setPreview(null);
   };
 
@@ -271,10 +280,23 @@ export function SyncLists() {
         </div>
 
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>Target Profiles</label>
-          <p className={styles.sectionHint}>
-            Select profiles to sync, or leave empty to sync all
-          </p>
+          <div className={styles.profileHeader}>
+            <label className={styles.sectionLabel}>
+              Target Profiles
+              <span className={styles.hint}>
+                ({selectedProfiles.length} selected)
+              </span>
+            </label>
+            <button
+              type="button"
+              className={styles.selectAllButton}
+              onClick={handleSelectAll}
+            >
+              {selectedProfiles.length === profiles.length
+                ? 'Deselect All'
+                : 'Select All'}
+            </button>
+          </div>
           <div className={styles.profileGrid}>
             {profiles.map((profile) => (
               <label key={profile.id} className={styles.profileCheckbox}>
@@ -313,7 +335,12 @@ export function SyncLists() {
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.actions}>
-          <Button onClick={analyzeSync} isLoading={isAnalyzing} variant="secondary">
+          <Button
+            onClick={analyzeSync}
+            isLoading={isAnalyzing}
+            variant="secondary"
+            disabled={selectedProfiles.length < 2}
+          >
             {isAnalyzing ? 'Analyzing...' : 'Analyze Changes'}
           </Button>
         </div>

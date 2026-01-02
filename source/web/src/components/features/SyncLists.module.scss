@@ -39,19 +39,42 @@
   margin-bottom: 24px;
 }
 
+.profileHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .sectionLabel {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 6px;
   color: var(--color-text);
   letter-spacing: -0.1px;
 }
 
-.sectionHint {
-  font-size: 13px;
+.hint {
+  font-weight: 400;
   color: var(--color-text-muted);
-  margin: 0 0 12px;
+}
+
+.selectAllButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  transition: all var(--transition);
+
+  &:hover {
+    background: var(--color-primary-light);
+  }
 }
 
 .profileGrid {
