@@ -1,8 +1,9 @@
 .card {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  transition: box-shadow var(--transition-slow), border-color var(--transition);
 }
 
 .none {
@@ -10,11 +11,11 @@
 }
 
 .small {
-  padding: 12px;
+  padding: 16px;
 }
 
 .medium {
-  padding: 20px;
+  padding: 24px;
 }
 
 .large {
@@ -26,7 +27,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .headerText {
@@ -34,16 +35,18 @@
 }
 
 .title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .description {
   font-size: 14px;
   color: var(--color-text-muted);
-  margin: 4px 0 0;
+  margin: 6px 0 0;
+  line-height: 1.5;
 }
 
 .action {

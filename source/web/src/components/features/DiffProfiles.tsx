@@ -387,12 +387,12 @@ export function DiffProfiles() {
             {renderTable(
               'Blocklists',
               compareListItems('privacy', 'blocklists'),
-              'Legend: ✓ = enabled, - = not enabled'
+              'Legend: ✓ = enabled, - = not configured'
             )}
             {renderTable(
               'Native Tracking Protection',
               compareListItems('privacy', 'natives'),
-              'Legend: ✓ = enabled, - = not enabled'
+              'Legend: ✓ = enabled, - = not configured'
             )}
           </>
         )}
@@ -410,12 +410,12 @@ export function DiffProfiles() {
             {renderTable(
               'Blocked Services',
               compareListItems('parentalControl', 'services', true),
-              'Legend: ✓ = blocked (active), ✗ = in list but disabled, - = not in list'
+              'Legend: ✓ = active (blocking), ✗ = inactive, - = not configured'
             )}
             {renderTable(
               'Blocked Categories',
               compareListItems('parentalControl', 'categories', true),
-              'Legend: ✓ = blocked (active), ✗ = in list but disabled, - = not in list'
+              'Legend: ✓ = active (blocking), ✗ = inactive, - = not configured'
             )}
           </>
         )}
@@ -431,12 +431,12 @@ export function DiffProfiles() {
             {renderTable(
               'Denylist',
               compareLists('denylist'),
-              'Legend: ✓ = enabled, ✗ = disabled, - = missing'
+              'Legend: ✓ = active, ✗ = inactive, - = not in list'
             )}
             {renderTable(
               'Allowlist',
               compareLists('allowlist'),
-              'Legend: ✓ = enabled, ✗ = disabled, - = missing'
+              'Legend: ✓ = active, ✗ = inactive, - = not in list'
             )}
           </>
         )}

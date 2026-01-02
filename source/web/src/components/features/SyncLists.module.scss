@@ -5,23 +5,25 @@
 }
 
 .info {
-  background: var(--color-bg);
+  background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 16px 20px;
   margin-bottom: 24px;
 
   h4 {
     font-size: 14px;
     font-weight: 600;
     margin: 0 0 12px;
+    color: var(--color-text);
   }
 
   ul {
     margin: 0;
     padding-left: 20px;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--color-text-muted);
+    line-height: 1.6;
 
     li {
       margin-bottom: 6px;
@@ -39,9 +41,11 @@
 
 .sectionLabel {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--color-text);
+  letter-spacing: -0.1px;
 }
 
 .sectionHint {
@@ -52,8 +56,8 @@
 
 .profileGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
   max-height: 250px;
   overflow-y: auto;
 }
@@ -61,15 +65,17 @@
 .profileCheckbox {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   cursor: pointer;
   transition: all var(--transition);
+  background: var(--color-bg-secondary);
 
   &:hover {
     border-color: var(--color-primary);
+    background: var(--color-bg-tertiary);
   }
 
   input {
@@ -81,7 +87,7 @@
 
   &:has(input:checked) {
     border-color: var(--color-primary);
-    background: rgba(13, 110, 253, 0.05);
+    background: var(--color-primary-light);
   }
 }
 
@@ -89,6 +95,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
 }
 
 .profileName {
@@ -97,12 +104,13 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text);
 }
 
 .profileId {
   font-size: 12px;
   color: var(--color-text-muted);
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .syncOptions {
@@ -116,6 +124,12 @@
   gap: 8px;
   font-size: 14px;
   cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: color var(--transition);
+
+  &:hover {
+    color: var(--color-text);
+  }
 
   input {
     width: 18px;
@@ -128,6 +142,9 @@
   color: var(--color-danger);
   font-size: 14px;
   margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--color-danger-light);
+  border-radius: var(--radius);
 }
 
 .actions {
@@ -150,6 +167,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    color: var(--color-text);
   }
 }
 
@@ -172,8 +190,8 @@
   grid-template-columns: 50px 150px 1fr 80px;
   gap: 12px;
   align-items: center;
-  padding: 8px 12px;
-  background: var(--color-bg);
+  padding: 10px 14px;
+  background: var(--color-bg-tertiary);
   border-radius: var(--radius);
   font-size: 13px;
 }
@@ -182,6 +200,8 @@
   font-weight: 600;
   font-size: 11px;
   color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .opProfile {
@@ -189,19 +209,22 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text);
 }
 
 .opDomain {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text-secondary);
 }
 
 .opStatus {
   text-align: right;
   font-size: 12px;
+  font-weight: 500;
 
   &.enabled {
     color: var(--color-success);
@@ -215,16 +238,16 @@
 .more {
   font-size: 13px;
   color: var(--color-text-muted);
-  padding: 8px 12px;
+  padding: 10px 14px;
   margin: 0;
 }
 
 .noChanges {
   font-size: 14px;
   color: var(--color-text-muted);
-  padding: 16px;
+  padding: 20px;
   text-align: center;
-  background: var(--color-bg);
+  background: var(--color-bg-tertiary);
   border-radius: var(--radius);
   margin: 0;
 }
@@ -249,16 +272,16 @@
   grid-template-columns: 50px 150px 1fr auto;
   gap: 12px;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: var(--radius);
   font-size: 13px;
 
   &.success {
-    background: rgba(25, 135, 84, 0.1);
+    background: var(--color-success-light);
   }
 
   &.failure {
-    background: rgba(220, 53, 69, 0.1);
+    background: var(--color-danger-light);
   }
 }
 
@@ -266,6 +289,8 @@
   font-weight: 600;
   font-size: 11px;
   color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .resultProfile {
@@ -273,14 +298,16 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text);
 }
 
 .resultDomain {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text-secondary);
 }
 
 .resultStatus {
