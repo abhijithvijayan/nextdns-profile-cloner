@@ -46,7 +46,7 @@ jobs:
       # Provenance is automatic with trusted publishing
       - name: Publish with OIDC
         working-directory: source/cli
-        run: npm publish --access public --ignore-scripts
+        run: npm publish --access public
 
   # Notification Job
   notify_job:
