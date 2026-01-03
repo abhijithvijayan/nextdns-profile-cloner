@@ -3,7 +3,7 @@
  * Port of diff_profiles.py CLI interface
  */
 
-import { Command } from 'commander';
+import {Command} from 'commander';
 import {
   NextDNSApi,
   diffProfiles,
@@ -12,9 +12,14 @@ import {
 } from '../../../core/index.js';
 
 export const diffCommand = new Command('diff')
-  .description('Visualize differences between NextDNS profiles in a table format')
+  .description(
+    'Visualize differences between NextDNS profiles in a table format'
+  )
   .requiredOption('-k, --api-key <key>', 'NextDNS API Key')
-  .option('-p, --profiles <ids...>', 'Specific profile IDs to compare (default: all profiles)')
+  .option(
+    '-p, --profiles <ids...>',
+    'Specific profile IDs to compare (default: all profiles)'
+  )
   .option(
     '-s, --section <section>',
     'Section to compare: all, security, privacy, parental, settings, lists',
@@ -22,12 +27,21 @@ export const diffCommand = new Command('diff')
   )
   .option('--diff-only', 'Only show rows with differences')
   .action(async (options) => {
-    const { apiKey, profiles, section, diffOnly } = options;
+    const {apiKey, profiles, section, diffOnly} = options;
 
     // Validate section
-    const validSections: DiffSection[] = ['all', 'security', 'privacy', 'parental', 'settings', 'lists'];
+    const validSections: DiffSection[] = [
+      'all',
+      'security',
+      'privacy',
+      'parental',
+      'settings',
+      'lists',
+    ];
     if (!validSections.includes(section)) {
-      console.error(`Error: Invalid section '${section}'. Valid sections: ${validSections.join(', ')}`);
+      console.error(
+        `Error: Invalid section '${section}'. Valid sections: ${validSections.join(', ')}`
+      );
       process.exit(1);
     }
 

@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import {forwardRef} from 'react';
 import styles from './Input.module.scss';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -9,7 +9,10 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, fullWidth = false, className = '', id, ...props }, ref) => {
+  (
+    {label, error, hint, fullWidth = false, className = '', id, ...props},
+    ref
+  ) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
     return (

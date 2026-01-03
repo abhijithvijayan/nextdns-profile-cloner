@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from './Button';
-import { Input } from './Input';
-import { Card } from './Card';
+import {useState} from 'react';
+import {useAuth} from '@/contexts/AuthContext';
+import {Button} from './Button';
+import {Input} from './Input';
+import {Card} from './Card';
 import styles from './LoginForm.module.scss';
 
 export function LoginForm() {
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const {login} = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

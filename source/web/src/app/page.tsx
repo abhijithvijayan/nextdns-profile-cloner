@@ -1,11 +1,11 @@
 'use client';
 
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { LoginForm } from '@/components/LoginForm';
-import { Dashboard } from '@/components/Dashboard';
+import {AuthProvider, useAuth} from '@/contexts/AuthContext';
+import {LoginForm} from '@/components/LoginForm';
+import {Dashboard} from '@/components/Dashboard';
 
 function AppContent() {
-  const { apiKey, isLoading } = useAuth();
+  const {apiKey, isLoading} = useAuth();
 
   if (isLoading) {
     return (

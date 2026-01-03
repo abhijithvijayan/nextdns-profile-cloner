@@ -7,12 +7,16 @@ const CORS_HEADERS = {
 };
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
     const url = new URL(request.url);
 
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      return new Response(null, {status: 204, headers: CORS_HEADERS});
     }
 
     // Handle API proxy requests
@@ -30,10 +34,12 @@ async function handleApiProxy(request: Request, url: URL): Promise<Response> {
 
   if (!apiKey) {
     return new Response(
-      JSON.stringify({ errors: [{ code: 'authRequired', message: 'API key is required' }] }),
+      JSON.stringify({
+        errors: [{code: 'authRequired', message: 'API key is required'}],
+      }),
       {
         status: 401,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: {'Content-Type': 'application/json', ...CORS_HEADERS},
       }
     );
   }
@@ -85,14 +91,15 @@ async function handleApiProxy(request: Request, url: URL): Promise<Response> {
       },
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     console.error('Proxy error:', errorMessage);
 
     return new Response(
-      JSON.stringify({ errors: [{ code: 'proxyError', message: errorMessage }] }),
+      JSON.stringify({errors: [{code: 'proxyError', message: errorMessage}]}),
       {
         status: 502,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: {'Content-Type': 'application/json', ...CORS_HEADERS},
       }
     );
   }

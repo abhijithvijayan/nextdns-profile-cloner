@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
-import { Button } from '../Button';
-import { Input } from '../Input';
-import { Card, CardHeader } from '../Card';
-import type { Profile, ProfileData } from '@/lib/types';
-import { reconstructPayload } from '@/lib/types';
+import {useState} from 'react';
+import {useAuth} from '@/contexts/AuthContext';
+import {api} from '@/lib/api';
+import {Button} from '../Button';
+import {Input} from '../Input';
+import {Card, CardHeader} from '../Card';
+import type {Profile, ProfileData} from '@/lib/types';
+import {reconstructPayload} from '@/lib/types';
 import styles from './CopyProfile.module.scss';
 
 interface CopyResult {
@@ -19,9 +19,10 @@ interface CopyResult {
 type DestinationType = 'same' | 'different';
 
 export function CopyProfile() {
-  const { profiles, apiKey } = useAuth();
+  const {profiles, apiKey} = useAuth();
   const [selectedProfileId, setSelectedProfileId] = useState('');
-  const [destinationType, setDestinationType] = useState<DestinationType>('same');
+  const [destinationType, setDestinationType] =
+    useState<DestinationType>('same');
   const [destApiKey, setDestApiKey] = useState('');
   const [isValidatingKey, setIsValidatingKey] = useState(false);
   const [destKeyValid, setDestKeyValid] = useState<boolean | null>(null);
@@ -51,7 +52,7 @@ export function CopyProfile() {
 
   const updateResult = (index: number, update: Partial<CopyResult>) => {
     setResults((prev) =>
-      prev.map((r, i) => (i === index ? { ...r, ...update } : r))
+      prev.map((r, i) => (i === index ? {...r, ...update} : r))
     );
   };
 
@@ -70,32 +71,39 @@ export function CopyProfile() {
     setNewProfileId(null);
 
     const steps: CopyResult[] = [
-      { step: 'Fetch source profile', status: 'pending' },
-      { step: 'Create new profile', status: 'pending' },
-      { step: 'Copy rewrites', status: 'pending' },
-      { step: 'Verify clone', status: 'pending' },
+      {step: 'Fetch source profile', status: 'pending'},
+      {step: 'Create new profile', status: 'pending'},
+      {step: 'Copy rewrites', status: 'pending'},
+      {step: 'Verify clone', status: 'pending'},
     ];
     setResults(steps);
     setIsCopying(true);
 
-    const targetApiKey = destinationType === 'different' ? destApiKey.trim() : apiKey!;
+    const targetApiKey =
+      destinationType === 'different' ? destApiKey.trim() : apiKey!;
 
     try {
       // Step 1: Fetch source profile
-      updateResult(0, { status: 'running' });
+      updateResult(0, {status: 'running'});
       const sourceData = await api.getProfile(selectedProfileId);
-      updateResult(0, { status: 'success', message: `Fetched "${sourceData.name}"` });
+      updateResult(0, {
+        status: 'success',
+        message: `Fetched "${sourceData.name}"`,
+      });
 
       // Step 2: Create new profile
-      updateResult(1, { status: 'running' });
+      updateResult(1, {status: 'running'});
       const payload = reconstructPayload(sourceData);
       const newProfile = await api.createProfile(payload, targetApiKey);
       const newId = newProfile.id;
       setNewProfileId(newId);
-      updateResult(1, { status: 'success', message: `Created profile: ${newId}` });
+      updateResult(1, {
+        status: 'success',
+        message: `Created profile: ${newId}`,
+      });
 
       // Step 3: Copy rewrites
-      updateResult(2, { status: 'running' });
+      updateResult(2, {status: 'running'});
       try {
         const rewrites = await api.getRewrites(selectedProfileId);
         if (rewrites.length > 0) {
@@ -104,7 +112,7 @@ export function CopyProfile() {
             try {
               await api.addRewrite(
                 newId,
-                { name: rewrite.name, content: rewrite.content },
+                {name: rewrite.name, content: rewrite.content},
                 targetApiKey
               );
               copiedCount++;
@@ -117,14 +125,14 @@ export function CopyProfile() {
             message: `Copied ${copiedCount}/${rewrites.length} rewrites`,
           });
         } else {
-          updateResult(2, { status: 'success', message: 'No rewrites to copy' });
+          updateResult(2, {status: 'success', message: 'No rewrites to copy'});
         }
       } catch {
-        updateResult(2, { status: 'success', message: 'No rewrites found' });
+        updateResult(2, {status: 'success', message: 'No rewrites found'});
       }
 
       // Step 4: Verify
-      updateResult(3, { status: 'running' });
+      updateResult(3, {status: 'running'});
       const newData = await api.getProfile(newId, targetApiKey);
 
       const mismatches: string[] = [];
@@ -157,7 +165,10 @@ export function CopyProfile() {
           message: `Verification issues: ${mismatches.join(', ')}`,
         });
       } else {
-        updateResult(3, { status: 'success', message: 'Profile verified successfully' });
+        updateResult(3, {
+          status: 'success',
+          message: 'Profile verified successfully',
+        });
       }
     } catch (err) {
       const currentRunning = results.findIndex((r) => r.status === 'running');
@@ -281,8 +292,10 @@ export function CopyProfile() {
             <li>DNS rewrites</li>
           </ul>
           <p className={styles.note}>
-            <strong>Note:</strong> Profile ID, fingerprint, and setup instructions are auto-generated
-            for the new profile. The &quot;recreation&quot; parental control field cannot be copied via API.
+            <strong>Note:</strong> Profile ID, fingerprint, and setup
+            instructions are auto-generated for the new profile. The
+            &quot;recreation&quot; parental control field cannot be copied via
+            API.
           </p>
         </div>
 
@@ -307,7 +320,9 @@ export function CopyProfile() {
         <Card>
           <CardHeader
             title="Copy Progress"
-            description={newProfileId ? `New profile ID: ${newProfileId}` : 'Working...'}
+            description={
+              newProfileId ? `New profile ID: ${newProfileId}` : 'Working...'
+            }
           />
 
           <div className={styles.steps}>

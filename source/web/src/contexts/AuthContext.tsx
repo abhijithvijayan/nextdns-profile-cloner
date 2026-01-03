@@ -8,8 +8,8 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { api } from '@/lib/api';
-import type { Profile } from '@/lib/types';
+import {api} from '@/lib/api';
+import type {Profile} from '@/lib/types';
 
 interface AuthContextType {
   apiKey: string | null;
@@ -25,8 +25,15 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const STORAGE_KEY = 'nextdns_api_key';
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [apiKey, setApiKey] = useState<string | null>(null);
+export function AuthProvider({children}: {children: ReactNode}) {
+  const [apiKey, setApiKey] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const storedKey = localStorage.getItem(STORAGE_KEY);
+    if (storedKey) {
+      api.setApiKey(storedKey);
+    }
+    return storedKey;
+  });
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,17 +50,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Check for stored API key on mount
+  // Fetch profiles on mount if API key exists
   useEffect(() => {
-    const storedKey = localStorage.getItem(STORAGE_KEY);
-    if (storedKey) {
-      api.setApiKey(storedKey);
-      setApiKey(storedKey);
-      fetchProfiles(storedKey).finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
-  }, [fetchProfiles]);
+    let isMounted = true;
+
+    const initializeProfiles = async () => {
+      if (apiKey) {
+        await fetchProfiles(apiKey);
+      }
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    };
+
+    initializeProfiles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [apiKey, fetchProfiles]);
 
   const login = async (key: string): Promise<boolean> => {
     setIsLoading(true);

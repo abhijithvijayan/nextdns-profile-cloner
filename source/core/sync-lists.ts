@@ -6,14 +6,14 @@
  * Uses majority voting to determine canonical state for each domain.
  */
 
-import type { NextDNSApi } from './api.js';
-import type { Profile, ListType, SyncOperation } from './types.js';
+import type {NextDNSApi} from './api.js';
+import type {Profile, ListType, SyncOperation} from './types.js';
 
-const DELAY_MS = 500;  // 500ms between requests (matches Python DELAY = 0.5)
+const DELAY_MS = 500; // 500ms between requests (matches Python DELAY = 0.5)
 
 export interface ProfileListData {
   name: string;
-  denylist: Record<string, boolean>;  // domain -> active
+  denylist: Record<string, boolean>; // domain -> active
   allowlist: Record<string, boolean>;
 }
 
@@ -53,7 +53,8 @@ export interface SyncCallbacks {
   onAnalysisComplete?: (analysis: SyncAnalysis) => void;
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<unknown> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Rate limited request with retry logic.
@@ -61,7 +62,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  */
 async function rateLimitedRequest<T>(
   fn: () => Promise<T>,
-  maxRetries: number = 3
+  maxRetries = 3
 ): Promise<T> {
   let lastError: Error | undefined;
 
@@ -74,7 +75,7 @@ async function rateLimitedRequest<T>(
       lastError = err instanceof Error ? err : new Error(String(err));
       // Check for rate limit
       if (lastError.message.includes('rateLimit')) {
-        await sleep(2000);  // Wait longer if rate limited
+        await sleep(2000); // Wait longer if rate limited
       } else {
         throw lastError;
       }
@@ -98,10 +99,10 @@ async function getProfileListData(
     return {
       name: data.name,
       denylist: Object.fromEntries(
-        (data.denylist || []).map(d => [d.id, d.active])
+        (data.denylist || []).map((d) => [d.id, d.active])
       ),
       allowlist: Object.fromEntries(
-        (data.allowlist || []).map(d => [d.id, d.active])
+        (data.allowlist || []).map((d) => [d.id, d.active])
       ),
     };
   } catch (err) {
@@ -118,12 +119,12 @@ export function getCanonicalDomains(
   allData: Record<string, ProfileListData>,
   listType: ListType
 ): Record<string, boolean> {
-  const domainStates: Record<string, { enabled: number; disabled: number }> = {};
+  const domainStates: Record<string, {enabled: number; disabled: number}> = {};
 
   for (const pdata of Object.values(allData)) {
     for (const [domain, active] of Object.entries(pdata[listType])) {
       if (!domainStates[domain]) {
-        domainStates[domain] = { enabled: 0, disabled: 0 };
+        domainStates[domain] = {enabled: 0, disabled: 0};
       }
       if (active) {
         domainStates[domain].enabled++;
@@ -150,7 +151,7 @@ function calculateSyncOperations(
   allData: Record<string, ProfileListData>,
   canonical: Record<string, boolean>,
   listType: ListType
-): { toAdd: SyncOperation[]; toUpdate: SyncOperation[] } {
+): {toAdd: SyncOperation[]; toUpdate: SyncOperation[]} {
   const toAdd: SyncOperation[] = [];
   const toUpdate: SyncOperation[] = [];
 
@@ -180,7 +181,7 @@ function calculateSyncOperations(
     }
   }
 
-  return { toAdd, toUpdate };
+  return {toAdd, toUpdate};
 }
 
 /**
@@ -190,17 +191,19 @@ function calculateSyncOperations(
 export async function analyzeSync(
   api: NextDNSApi,
   options: Pick<SyncListsOptions, 'apiKey' | 'profileIds'>
-): Promise<{ allData: Record<string, ProfileListData>; analysis: SyncAnalysis }> {
-  const { apiKey, profileIds } = options;
+): Promise<{allData: Record<string, ProfileListData>; analysis: SyncAnalysis}> {
+  const {apiKey, profileIds} = options;
 
   // Get all profiles
   let profiles: Profile[] = await api.getProfiles(apiKey);
 
   // Filter to specified profiles if provided
   if (profileIds && profileIds.length > 0) {
-    profiles = profiles.filter(p => profileIds.includes(p.id));
+    profiles = profiles.filter((p) => profileIds.includes(p.id));
     if (profiles.length === 0) {
-      throw new Error(`None of the specified profiles found: ${profileIds.join(', ')}`);
+      throw new Error(
+        `None of the specified profiles found: ${profileIds.join(', ')}`
+      );
     }
   }
 
@@ -212,7 +215,7 @@ export async function analyzeSync(
   const allData: Record<string, ProfileListData> = {};
 
   for (const profile of profiles) {
-    await sleep(300);  // Rate limiting between profile fetches
+    await sleep(300); // Rate limiting between profile fetches
     const data = await getProfileListData(api, apiKey, profile.id);
     if (data) {
       allData[profile.id] = data;
@@ -224,12 +227,23 @@ export async function analyzeSync(
   const allowlistCanonical = getCanonicalDomains(allData, 'allowlist');
 
   // Calculate operations
-  const denylistOps = calculateSyncOperations(allData, denylistCanonical, 'denylist');
-  const allowlistOps = calculateSyncOperations(allData, allowlistCanonical, 'allowlist');
+  const denylistOps = calculateSyncOperations(
+    allData,
+    denylistCanonical,
+    'denylist'
+  );
+  const allowlistOps = calculateSyncOperations(
+    allData,
+    allowlistCanonical,
+    'allowlist'
+  );
 
   // Calculate total operations for time estimate
-  const totalOps = denylistOps.toAdd.length + denylistOps.toUpdate.length +
-                   allowlistOps.toAdd.length + allowlistOps.toUpdate.length;
+  const totalOps =
+    denylistOps.toAdd.length +
+    denylistOps.toUpdate.length +
+    allowlistOps.toAdd.length +
+    allowlistOps.toUpdate.length;
   const estimatedTimeMinutes = (totalOps * DELAY_MS) / 60000;
 
   const analysis: SyncAnalysis = {
@@ -248,7 +262,7 @@ export async function analyzeSync(
     estimatedTimeMinutes,
   };
 
-  return { allData, analysis };
+  return {allData, analysis};
 }
 
 /**
@@ -267,8 +281,8 @@ export async function executeSync(
   updateFail: number;
   results: SyncResult[];
 }> {
-  const { apiKey, listType, dryRun } = options;
-  const { onProgress } = callbacks;
+  const {apiKey, listType, dryRun} = options;
+  const {onProgress} = callbacks;
 
   if (dryRun) {
     return {
@@ -293,7 +307,10 @@ export async function executeSync(
     operations.push(...analysis.denylist.toAdd, ...analysis.denylist.toUpdate);
   }
   if (listType === 'both' || listType === 'allowlist') {
-    operations.push(...analysis.allowlist.toAdd, ...analysis.allowlist.toUpdate);
+    operations.push(
+      ...analysis.allowlist.toAdd,
+      ...analysis.allowlist.toUpdate
+    );
   }
 
   const total = operations.length;
@@ -306,13 +323,25 @@ export async function executeSync(
     try {
       if (op.type === 'add') {
         await rateLimitedRequest(async () => {
-          await api.addDomain(op.profileId, op.domain, op.listType, op.shouldBeActive, apiKey);
+          await api.addDomain(
+            op.profileId,
+            op.domain,
+            op.listType,
+            op.shouldBeActive,
+            apiKey
+          );
         });
         addSuccess++;
         success = true;
       } else {
         await rateLimitedRequest(async () => {
-          await api.updateDomainStatus(op.profileId, op.domain, op.listType, op.shouldBeActive, apiKey);
+          await api.updateDomainStatus(
+            op.profileId,
+            op.domain,
+            op.listType,
+            op.shouldBeActive,
+            apiKey
+          );
         });
         updateSuccess++;
         success = true;
@@ -326,12 +355,12 @@ export async function executeSync(
       }
     }
 
-    const result: SyncResult = { operation: op, success, error };
+    const result: SyncResult = {operation: op, success, error};
     results.push(result);
     onProgress?.(result, i + 1, total);
   }
 
-  return { addSuccess, addFail, updateSuccess, updateFail, results };
+  return {addSuccess, addFail, updateSuccess, updateFail, results};
 }
 
 /**
@@ -350,10 +379,10 @@ export async function syncLists(
   updateSuccess: number;
   updateFail: number;
 }> {
-  const { onAnalysisComplete } = callbacks;
+  const {onAnalysisComplete} = callbacks;
 
   // Analyze first
-  const { analysis } = await analyzeSync(api, {
+  const {analysis} = await analyzeSync(api, {
     apiKey: options.apiKey,
     profileIds: options.profileIds,
   });

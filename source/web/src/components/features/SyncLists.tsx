@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
-import { Button } from '../Button';
-import { Card, CardHeader } from '../Card';
-import type { ListType } from '@/lib/types';
+import {useState} from 'react';
+import {useAuth} from '@/contexts/AuthContext';
+import {api} from '@/lib/api';
+import {Button} from '../Button';
+import {Card, CardHeader} from '../Card';
+import type {ListType} from '@/lib/types';
 import styles from './SyncLists.module.scss';
 
 interface ProfileDataMap {
@@ -28,8 +28,8 @@ interface SyncOperation {
 }
 
 interface SyncPreview {
-  denylist: { toAdd: SyncOperation[]; toUpdate: SyncOperation[] };
-  allowlist: { toAdd: SyncOperation[]; toUpdate: SyncOperation[] };
+  denylist: {toAdd: SyncOperation[]; toUpdate: SyncOperation[]};
+  allowlist: {toAdd: SyncOperation[]; toUpdate: SyncOperation[]};
   canonical: {
     denylist: Record<string, boolean>;
     allowlist: Record<string, boolean>;
@@ -58,7 +58,7 @@ interface RateLimitState {
 }
 
 export function SyncLists() {
-  const { profiles } = useAuth();
+  const {profiles} = useAuth();
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [syncTarget, setSyncTarget] = useState<SyncTarget>('both');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -67,8 +67,10 @@ export function SyncLists() {
   const [operations, setOperations] = useState<SyncOperation[]>([]);
   const [completedCount, setCompletedCount] = useState(0);
   const [error, setError] = useState('');
-  const [analysisProgress, setAnalysisProgress] = useState<ProgressState | null>(null);
-  const [currentOperation, setCurrentOperation] = useState<SyncOperation | null>(null);
+  const [analysisProgress, setAnalysisProgress] =
+    useState<ProgressState | null>(null);
+  const [currentOperation, setCurrentOperation] =
+    useState<SyncOperation | null>(null);
   const [rateLimitState, setRateLimitState] = useState<RateLimitState>({
     isRateLimited: false,
     retryCount: 0,
@@ -96,12 +98,13 @@ export function SyncLists() {
     allData: ProfileDataMap,
     listType: ListType
   ): Record<string, boolean> => {
-    const domainStates: Record<string, { enabled: number; disabled: number }> = {};
+    const domainStates: Record<string, {enabled: number; disabled: number}> =
+      {};
 
     for (const pdata of Object.values(allData)) {
       for (const [domain, active] of Object.entries(pdata[listType])) {
         if (!domainStates[domain]) {
-          domainStates[domain] = { enabled: 0, disabled: 0 };
+          domainStates[domain] = {enabled: 0, disabled: 0};
         }
         if (active) {
           domainStates[domain].enabled++;
@@ -123,7 +126,7 @@ export function SyncLists() {
     allData: ProfileDataMap,
     canonical: Record<string, boolean>,
     listType: ListType
-  ): { toAdd: SyncOperation[]; toUpdate: SyncOperation[] } => {
+  ): {toAdd: SyncOperation[]; toUpdate: SyncOperation[]} => {
     const toAdd: SyncOperation[] = [];
     const toUpdate: SyncOperation[] = [];
 
@@ -154,7 +157,7 @@ export function SyncLists() {
       }
     }
 
-    return { toAdd, toUpdate };
+    return {toAdd, toUpdate};
   };
 
   const analyzeSync = async () => {
@@ -210,8 +213,16 @@ export function SyncLists() {
       const denylistCanonical = getCanonicalDomains(allData, 'denylist');
       const allowlistCanonical = getCanonicalDomains(allData, 'allowlist');
 
-      const denylistOps = calculateSyncOperations(allData, denylistCanonical, 'denylist');
-      const allowlistOps = calculateSyncOperations(allData, allowlistCanonical, 'allowlist');
+      const denylistOps = calculateSyncOperations(
+        allData,
+        denylistCanonical,
+        'denylist'
+      );
+      const allowlistOps = calculateSyncOperations(
+        allData,
+        allowlistCanonical,
+        'allowlist'
+      );
 
       setPreview({
         denylist: denylistOps,
@@ -222,7 +233,9 @@ export function SyncLists() {
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze profiles');
+      setError(
+        err instanceof Error ? err.message : 'Failed to analyze profiles'
+      );
     } finally {
       setIsAnalyzing(false);
       setAnalysisProgress(null);
@@ -235,10 +248,16 @@ export function SyncLists() {
     const allOperations: SyncOperation[] = [];
 
     if (syncTarget === 'both' || syncTarget === 'denylist') {
-      allOperations.push(...preview.denylist.toAdd, ...preview.denylist.toUpdate);
+      allOperations.push(
+        ...preview.denylist.toAdd,
+        ...preview.denylist.toUpdate
+      );
     }
     if (syncTarget === 'both' || syncTarget === 'allowlist') {
-      allOperations.push(...preview.allowlist.toAdd, ...preview.allowlist.toUpdate);
+      allOperations.push(
+        ...preview.allowlist.toAdd,
+        ...preview.allowlist.toUpdate
+      );
     }
 
     if (allOperations.length === 0) {
@@ -250,7 +269,7 @@ export function SyncLists() {
     setCompletedCount(0);
     setIsSyncing(true);
     setCurrentOperation(null);
-    setRateLimitState({ isRateLimited: false, retryCount: 0 });
+    setRateLimitState({isRateLimited: false, retryCount: 0});
 
     for (let i = 0; i < allOperations.length; i++) {
       const op = allOperations[i];
@@ -265,20 +284,32 @@ export function SyncLists() {
       for (let attempt = 0; attempt < MAX_RETRIES && !success; attempt++) {
         try {
           if (op.type === 'add') {
-            await api.addDomain(op.profileId, op.domain, op.listType, op.shouldBeActive);
+            await api.addDomain(
+              op.profileId,
+              op.domain,
+              op.listType,
+              op.shouldBeActive
+            );
           } else {
-            await api.updateDomainStatus(op.profileId, op.domain, op.listType, op.shouldBeActive);
+            await api.updateDomainStatus(
+              op.profileId,
+              op.domain,
+              op.listType,
+              op.shouldBeActive
+            );
           }
           success = true;
-          setRateLimitState({ isRateLimited: false, retryCount: 0 });
+          setRateLimitState({isRateLimited: false, retryCount: 0});
         } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          const errorMessage =
+            err instanceof Error ? err.message : 'Unknown error';
           lastError = errorMessage;
 
           // Check for rate limit error
-          const isRateLimit = errorMessage.toLowerCase().includes('ratelimit') ||
-                              errorMessage.includes('429') ||
-                              errorMessage.toLowerCase().includes('too many');
+          const isRateLimit =
+            errorMessage.toLowerCase().includes('ratelimit') ||
+            errorMessage.includes('429') ||
+            errorMessage.toLowerCase().includes('too many');
 
           if (isRateLimit && attempt < MAX_RETRIES - 1) {
             // Show rate limit state and wait
@@ -297,14 +328,12 @@ export function SyncLists() {
 
       if (success) {
         setOperations((prev) =>
-          prev.map((o, idx) => (idx === i ? { ...o, status: 'success' } : o))
+          prev.map((o, idx) => (idx === i ? {...o, status: 'success'} : o))
         );
       } else {
         setOperations((prev) =>
           prev.map((o, idx) =>
-            idx === i
-              ? { ...o, status: 'failed', error: lastError }
-              : o
+            idx === i ? {...o, status: 'failed', error: lastError} : o
           )
         );
       }
@@ -319,21 +348,21 @@ export function SyncLists() {
 
     setIsSyncing(false);
     setCurrentOperation(null);
-    setRateLimitState({ isRateLimited: false, retryCount: 0 });
+    setRateLimitState({isRateLimited: false, retryCount: 0});
     setPreview(null);
   };
 
-  const totalOps =
-    preview
-      ? (syncTarget === 'both' || syncTarget === 'denylist'
-          ? preview.denylist.toAdd.length + preview.denylist.toUpdate.length
-          : 0) +
-        (syncTarget === 'both' || syncTarget === 'allowlist'
-          ? preview.allowlist.toAdd.length + preview.allowlist.toUpdate.length
-          : 0)
-      : 0;
+  const totalOps = preview
+    ? (syncTarget === 'both' || syncTarget === 'denylist'
+        ? preview.denylist.toAdd.length + preview.denylist.toUpdate.length
+        : 0) +
+      (syncTarget === 'both' || syncTarget === 'allowlist'
+        ? preview.allowlist.toAdd.length + preview.allowlist.toUpdate.length
+        : 0)
+    : 0;
 
-  const estimatedTime = totalOps > 0 ? ((totalOps * DELAY_MS) / 60000).toFixed(1) : '0';
+  const estimatedTime =
+    totalOps > 0 ? ((totalOps * DELAY_MS) / 60000).toFixed(1) : '0';
 
   const successCount = operations.filter((o) => o.status === 'success').length;
   const failCount = operations.filter((o) => o.status === 'failed').length;
@@ -349,10 +378,18 @@ export function SyncLists() {
         <div className={styles.info}>
           <h4>How it works</h4>
           <ul>
-            <li>Domains are synced based on <strong>majority voting</strong></li>
-            <li>If a domain is enabled in most profiles, it will be enabled everywhere</li>
+            <li>
+              Domains are synced based on <strong>majority voting</strong>
+            </li>
+            <li>
+              If a domain is enabled in most profiles, it will be enabled
+              everywhere
+            </li>
             <li>If there&apos;s a tie, enabled state wins</li>
-            <li>Missing domains will be added to profiles that don&apos;t have them</li>
+            <li>
+              Missing domains will be added to profiles that don&apos;t have
+              them
+            </li>
           </ul>
         </div>
 
@@ -394,18 +431,24 @@ export function SyncLists() {
         <div className={styles.section}>
           <label className={styles.sectionLabel}>List to Sync</label>
           <div className={styles.syncOptions}>
-            {(['both', 'denylist', 'allowlist'] as SyncTarget[]).map((target) => (
-              <label key={target} className={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="syncTarget"
-                  value={target}
-                  checked={syncTarget === target}
-                  onChange={() => setSyncTarget(target)}
-                />
-                <span>{target === 'both' ? 'Both Lists' : target.charAt(0).toUpperCase() + target.slice(1)}</span>
-              </label>
-            ))}
+            {(['both', 'denylist', 'allowlist'] as SyncTarget[]).map(
+              (target) => (
+                <label key={target} className={styles.radioOption}>
+                  <input
+                    type="radio"
+                    name="syncTarget"
+                    value={target}
+                    checked={syncTarget === target}
+                    onChange={() => setSyncTarget(target)}
+                  />
+                  <span>
+                    {target === 'both'
+                      ? 'Both Lists'
+                      : target.charAt(0).toUpperCase() + target.slice(1)}
+                  </span>
+                </label>
+              )
+            )}
           </div>
         </div>
 
@@ -444,16 +487,21 @@ export function SyncLists() {
               />
             </div>
             <div className={styles.progressDetails}>
-              {analysisProgress.phase === 'fetching' && analysisProgress.currentProfileName && (
-                <div className={styles.currentAction}>
-                  <span className={styles.actionLabel}>Fetching:</span>
-                  <span className={styles.actionValue}>{analysisProgress.currentProfileName}</span>
-                </div>
-              )}
+              {analysisProgress.phase === 'fetching' &&
+                analysisProgress.currentProfileName && (
+                  <div className={styles.currentAction}>
+                    <span className={styles.actionLabel}>Fetching:</span>
+                    <span className={styles.actionValue}>
+                      {analysisProgress.currentProfileName}
+                    </span>
+                  </div>
+                )}
               {analysisProgress.phase === 'calculating' && (
                 <div className={styles.currentAction}>
                   <span className={styles.actionLabel}>Status:</span>
-                  <span className={styles.actionValue}>Comparing domain lists...</span>
+                  <span className={styles.actionValue}>
+                    Comparing domain lists...
+                  </span>
                 </div>
               )}
             </div>
@@ -473,24 +521,41 @@ export function SyncLists() {
               <h4>
                 Denylist
                 <span className={styles.counts}>
-                  {preview.denylist.toAdd.length} to add, {preview.denylist.toUpdate.length} to update
+                  {preview.denylist.toAdd.length} to add,{' '}
+                  {preview.denylist.toUpdate.length} to update
                 </span>
               </h4>
-              {preview.denylist.toAdd.length + preview.denylist.toUpdate.length > 0 ? (
+              {preview.denylist.toAdd.length +
+                preview.denylist.toUpdate.length >
+              0 ? (
                 <div className={styles.operationsList}>
-                  {[...preview.denylist.toAdd, ...preview.denylist.toUpdate].slice(0, 20).map((op, i) => (
-                    <div key={`deny-${i}`} className={styles.operationItem}>
-                      <span className={styles.opType}>{op.type === 'add' ? 'ADD' : 'UPD'}</span>
-                      <span className={styles.opProfile}>{op.profileName}</span>
-                      <span className={styles.opDomain}>{op.domain}</span>
-                      <span className={`${styles.opStatus} ${op.shouldBeActive ? styles.enabled : styles.disabled}`}>
-                        {op.shouldBeActive ? 'enable' : 'disable'}
-                      </span>
-                    </div>
-                  ))}
-                  {preview.denylist.toAdd.length + preview.denylist.toUpdate.length > 20 && (
+                  {[...preview.denylist.toAdd, ...preview.denylist.toUpdate]
+                    .slice(0, 20)
+                    .map((op, i) => (
+                      <div key={`deny-${i}`} className={styles.operationItem}>
+                        <span className={styles.opType}>
+                          {op.type === 'add' ? 'ADD' : 'UPD'}
+                        </span>
+                        <span className={styles.opProfile}>
+                          {op.profileName}
+                        </span>
+                        <span className={styles.opDomain}>{op.domain}</span>
+                        <span
+                          className={`${styles.opStatus} ${op.shouldBeActive ? styles.enabled : styles.disabled}`}
+                        >
+                          {op.shouldBeActive ? 'enable' : 'disable'}
+                        </span>
+                      </div>
+                    ))}
+                  {preview.denylist.toAdd.length +
+                    preview.denylist.toUpdate.length >
+                    20 && (
                     <p className={styles.more}>
-                      ...and {preview.denylist.toAdd.length + preview.denylist.toUpdate.length - 20} more
+                      ...and{' '}
+                      {preview.denylist.toAdd.length +
+                        preview.denylist.toUpdate.length -
+                        20}{' '}
+                      more
                     </p>
                   )}
                 </div>
@@ -505,24 +570,41 @@ export function SyncLists() {
               <h4>
                 Allowlist
                 <span className={styles.counts}>
-                  {preview.allowlist.toAdd.length} to add, {preview.allowlist.toUpdate.length} to update
+                  {preview.allowlist.toAdd.length} to add,{' '}
+                  {preview.allowlist.toUpdate.length} to update
                 </span>
               </h4>
-              {preview.allowlist.toAdd.length + preview.allowlist.toUpdate.length > 0 ? (
+              {preview.allowlist.toAdd.length +
+                preview.allowlist.toUpdate.length >
+              0 ? (
                 <div className={styles.operationsList}>
-                  {[...preview.allowlist.toAdd, ...preview.allowlist.toUpdate].slice(0, 20).map((op, i) => (
-                    <div key={`allow-${i}`} className={styles.operationItem}>
-                      <span className={styles.opType}>{op.type === 'add' ? 'ADD' : 'UPD'}</span>
-                      <span className={styles.opProfile}>{op.profileName}</span>
-                      <span className={styles.opDomain}>{op.domain}</span>
-                      <span className={`${styles.opStatus} ${op.shouldBeActive ? styles.enabled : styles.disabled}`}>
-                        {op.shouldBeActive ? 'enable' : 'disable'}
-                      </span>
-                    </div>
-                  ))}
-                  {preview.allowlist.toAdd.length + preview.allowlist.toUpdate.length > 20 && (
+                  {[...preview.allowlist.toAdd, ...preview.allowlist.toUpdate]
+                    .slice(0, 20)
+                    .map((op, i) => (
+                      <div key={`allow-${i}`} className={styles.operationItem}>
+                        <span className={styles.opType}>
+                          {op.type === 'add' ? 'ADD' : 'UPD'}
+                        </span>
+                        <span className={styles.opProfile}>
+                          {op.profileName}
+                        </span>
+                        <span className={styles.opDomain}>{op.domain}</span>
+                        <span
+                          className={`${styles.opStatus} ${op.shouldBeActive ? styles.enabled : styles.disabled}`}
+                        >
+                          {op.shouldBeActive ? 'enable' : 'disable'}
+                        </span>
+                      </div>
+                    ))}
+                  {preview.allowlist.toAdd.length +
+                    preview.allowlist.toUpdate.length >
+                    20 && (
                     <p className={styles.more}>
-                      ...and {preview.allowlist.toAdd.length + preview.allowlist.toUpdate.length - 20} more
+                      ...and{' '}
+                      {preview.allowlist.toAdd.length +
+                        preview.allowlist.toUpdate.length -
+                        20}{' '}
+                      more
                     </p>
                   )}
                 </div>
@@ -566,7 +648,10 @@ export function SyncLists() {
             {rateLimitState.isRateLimited && (
               <div className={styles.rateLimitWarning}>
                 <span className={styles.rateLimitIcon}>⏳</span>
-                <span>Rate limited - retrying (attempt {rateLimitState.retryCount}/{MAX_RETRIES})...</span>
+                <span>
+                  Rate limited - retrying (attempt {rateLimitState.retryCount}/
+                  {MAX_RETRIES})...
+                </span>
               </div>
             )}
             {currentOperation && (
@@ -580,12 +665,16 @@ export function SyncLists() {
                 </div>
                 <div className={styles.currentAction}>
                   <span className={styles.actionLabel}>Profile:</span>
-                  <span className={styles.actionValue}>{currentOperation.profileName}</span>
+                  <span className={styles.actionValue}>
+                    {currentOperation.profileName}
+                  </span>
                 </div>
                 <div className={styles.currentAction}>
                   <span className={styles.actionLabel}>List:</span>
                   <span className={styles.actionValue}>
-                    {currentOperation.listType === 'denylist' ? 'Denylist' : 'Allowlist'}
+                    {currentOperation.listType === 'denylist'
+                      ? 'Denylist'
+                      : 'Allowlist'}
                   </span>
                 </div>
               </div>
@@ -594,13 +683,17 @@ export function SyncLists() {
               <span className={styles.recentLabel}>Recent:</span>
               <div className={styles.recentItems}>
                 {operations
-                  .filter((op) => op.status === 'success' || op.status === 'failed')
+                  .filter(
+                    (op) => op.status === 'success' || op.status === 'failed'
+                  )
                   .slice(-5)
                   .map((op, i) => (
                     <span
                       key={i}
                       className={`${styles.recentItem} ${
-                        op.status === 'success' ? styles.recentSuccess : styles.recentFailed
+                        op.status === 'success'
+                          ? styles.recentSuccess
+                          : styles.recentFailed
                       }`}
                       title={`${op.domain} - ${op.profileName}`}
                     >
@@ -624,14 +717,24 @@ export function SyncLists() {
               <div
                 key={i}
                 className={`${styles.resultItem} ${
-                  op.status === 'success' ? styles.success : op.status === 'failed' ? styles.failure : ''
+                  op.status === 'success'
+                    ? styles.success
+                    : op.status === 'failed'
+                      ? styles.failure
+                      : ''
                 }`}
               >
-                <span className={styles.resultType}>{op.type === 'add' ? 'ADD' : 'UPD'}</span>
+                <span className={styles.resultType}>
+                  {op.type === 'add' ? 'ADD' : 'UPD'}
+                </span>
                 <span className={styles.resultProfile}>{op.profileName}</span>
                 <span className={styles.resultDomain}>{op.domain}</span>
                 <span className={styles.resultStatus}>
-                  {op.status === 'success' ? '✓' : op.status === 'failed' ? `✗ ${op.error}` : '...'}
+                  {op.status === 'success'
+                    ? '✓'
+                    : op.status === 'failed'
+                      ? `✗ ${op.error}`
+                      : '...'}
                 </span>
               </div>
             ))}

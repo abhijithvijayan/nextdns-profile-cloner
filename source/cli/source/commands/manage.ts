@@ -3,23 +3,46 @@
  * Port of manage_domain.py CLI interface
  */
 
-import { Command } from 'commander';
-import { NextDNSApi, manageDomain, type ListType, type DomainAction } from '../../../core/index.js';
+import {Command} from 'commander';
+import {
+  NextDNSApi,
+  manageDomain,
+  type ListType,
+  type DomainAction,
+} from '../../../core/index.js';
 
 export const manageCommand = new Command('manage')
-  .description('Manage domains in allowlist/denylist across all NextDNS profiles')
+  .description(
+    'Manage domains in allowlist/denylist across all NextDNS profiles'
+  )
   .requiredOption('-k, --api-key <key>', 'NextDNS API Key')
-  .requiredOption('-d, --domain <domain>', 'Domain to manage (e.g., example.com)')
-  .requiredOption('-l, --list <type>', 'Target list: allowlist or denylist', validateListType)
-  .option('-a, --action <action>', 'Action: add, remove, enable, or disable', 'add')
-  .option('-p, --profiles <ids...>', 'Specific profile IDs to target (default: all profiles)')
+  .requiredOption(
+    '-d, --domain <domain>',
+    'Domain to manage (e.g., example.com)'
+  )
+  .requiredOption(
+    '-l, --list <type>',
+    'Target list: allowlist or denylist',
+    validateListType
+  )
+  .option(
+    '-a, --action <action>',
+    'Action: add, remove, enable, or disable',
+    'add'
+  )
+  .option(
+    '-p, --profiles <ids...>',
+    'Specific profile IDs to target (default: all profiles)'
+  )
   .action(async (options) => {
-    const { apiKey, domain, list, action, profiles } = options;
+    const {apiKey, domain, list, action, profiles} = options;
 
     // Validate action
     const validActions: DomainAction[] = ['add', 'remove', 'enable', 'disable'];
     if (!validActions.includes(action)) {
-      console.error(`Error: Invalid action '${action}'. Valid actions: ${validActions.join(', ')}`);
+      console.error(
+        `Error: Invalid action '${action}'. Valid actions: ${validActions.join(', ')}`
+      );
       process.exit(1);
     }
 
@@ -50,7 +73,11 @@ export const manageCommand = new Command('manage')
           profileIds: profiles,
         },
         {
-          onProgress: (opResult: { profileId: string; success: boolean; error?: string }) => {
+          onProgress: (opResult: {
+            profileId: string;
+            success: boolean;
+            error?: string;
+          }) => {
             const status = opResult.success
               ? opResult.error
                 ? `OK (${opResult.error})`
@@ -64,7 +91,9 @@ export const manageCommand = new Command('manage')
       console.log(`\nFound ${result.results.length} profile(s)`);
       console.log(`${actionVerbs[action as DomainAction]} ${list}: ${domain}`);
       console.log('-'.repeat(50));
-      console.log(`Complete: ${result.successCount} succeeded, ${result.failCount} failed`);
+      console.log(
+        `Complete: ${result.successCount} succeeded, ${result.failCount} failed`
+      );
 
       if (result.failCount > 0) {
         process.exit(1);
@@ -78,7 +107,9 @@ export const manageCommand = new Command('manage')
 function validateListType(value: string): string {
   const valid = ['allowlist', 'denylist'];
   if (!valid.includes(value)) {
-    throw new Error(`Invalid list type '${value}'. Valid types: ${valid.join(', ')}`);
+    throw new Error(
+      `Invalid list type '${value}'. Valid types: ${valid.join(', ')}`
+    );
   }
   return value;
 }

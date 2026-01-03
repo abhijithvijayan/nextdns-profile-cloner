@@ -30,6 +30,8 @@
     "start": "node lib/cli/source/index.js",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "pack:list": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz README.md license",
     "prepack": "cp ../../README.md ../../license .",
     "postpublish": "rm -f README.md license"
@@ -38,9 +40,19 @@
     "commander": "^12.1.0"
   },
   "devDependencies": {
+    "@abhijithvijayan/eslint-config": "^3.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-import-x": "^4.16.1",
+    "eslint-plugin-n": "^17.23.1",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^15.15.0",
     "jest": "^30.2.0",
+    "prettier": "^3.7.4",
     "ts-jest": "^29.4.6",
     "tsx": "^4.7.0",
     "typescript": "^5"

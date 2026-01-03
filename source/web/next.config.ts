@@ -1,8 +1,8 @@
-import type { NextConfig } from "next";
-import path from "path";
+import type {NextConfig} from 'next';
+import path from 'path';
 
 const nextConfig: NextConfig = {
-  output: "export",
+  output: 'export',
   // Allow imports from core directory outside web (for Turbopack)
   turbopack: {
     resolveAlias: {

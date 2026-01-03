@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
-    "lint": "eslint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "deploy": "wrangler deploy",
     "cf:dev": "wrangler dev",
     "postbuild": "next-sitemap"
@@ -17,12 +18,21 @@
     "sass": "^1.97.1"
   },
   "devDependencies": {
+    "@abhijithvijayan/eslint-config": "^3.0.0",
     "@cloudflare/workers-types": "^4.20241230.0",
     "@types/node": "^20",
     "@types/react": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import-x": "^4.16.1",
+    "eslint-plugin-n": "^17.23.1",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^15.15.0",
     "next-sitemap": "^4.2.3",
+    "prettier": "^3.7.4",
     "typescript": "^5",
     "wrangler": "^4.0.0"
   }

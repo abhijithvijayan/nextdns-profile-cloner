@@ -1,14 +1,13 @@
-#!/usr/bin/env node
 /**
  * NextDNS Manager CLI
  * TypeScript port of the Python CLI tools
  */
 
-import { Command } from 'commander';
-import { manageCommand } from './commands/manage.js';
-import { syncCommand } from './commands/sync.js';
-import { diffCommand } from './commands/diff.js';
-import { copyCommand } from './commands/copy.js';
+import {Command} from 'commander';
+import {manageCommand} from './commands/manage.js';
+import {syncCommand} from './commands/sync.js';
+import {diffCommand} from './commands/diff.js';
+import {copyCommand} from './commands/copy.js';
 
 const program = new Command();
 

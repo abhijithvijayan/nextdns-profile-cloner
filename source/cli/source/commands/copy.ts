@@ -3,8 +3,8 @@
  * Port of copy_profile.py CLI interface
  */
 
-import { Command } from 'commander';
-import { NextDNSApi, copyProfile } from '../../../core/index.js';
+import {Command} from 'commander';
+import {NextDNSApi, copyProfile} from '../../../core/index.js';
 
 export const copyCommand = new Command('copy')
   .description('Clone a NextDNS profile')
@@ -13,7 +13,7 @@ export const copyCommand = new Command('copy')
   .requiredOption('-p, --profile-id <id>', 'Profile ID to copy from source')
   .option('-f, --force', 'Force copy even if unknown API fields are detected')
   .action(async (options) => {
-    const { sourceKey, destKey, profileId, force } = options;
+    const {sourceKey, destKey, profileId, force} = options;
 
     const api = new NextDNSApi();
 
@@ -30,7 +30,11 @@ export const copyCommand = new Command('copy')
           onStepStart: (step: string) => {
             process.stdout.write(`${step}... `);
           },
-          onStepComplete: (step: string, success: boolean, message?: string) => {
+          onStepComplete: (
+            step: string,
+            success: boolean,
+            message?: string
+          ) => {
             if (success) {
               console.log(message ? `OK (${message})` : 'OK');
             } else {
@@ -40,7 +44,9 @@ export const copyCommand = new Command('copy')
           onWarning: (warnings: string[]) => {
             console.log('\n' + '='.repeat(60));
             console.log('WARNING: Unknown fields detected in API response!');
-            console.log('This script may be outdated and missing new NextDNS features.');
+            console.log(
+              'This script may be outdated and missing new NextDNS features.'
+            );
             console.log('='.repeat(60));
             for (const warning of warnings) {
               console.log(`  - ${warning}`);
@@ -48,7 +54,9 @@ export const copyCommand = new Command('copy')
             console.log('='.repeat(60));
             if (!force) {
               console.log('\nTo proceed anyway, use the --force flag.');
-              console.log('Consider updating this script to handle the new fields.');
+              console.log(
+                'Consider updating this script to handle the new fields.'
+              );
             } else {
               console.log('\n--force flag set, proceeding with copy...\n');
             }
@@ -65,9 +73,13 @@ export const copyCommand = new Command('copy')
       console.log('Verifying clone...');
 
       if (result.verificationMismatches.length === 0) {
-        console.log('VERIFICATION SUCCESSFUL: Source and Destination profiles match.');
+        console.log(
+          'VERIFICATION SUCCESSFUL: Source and Destination profiles match.'
+        );
       } else {
-        console.log('VERIFICATION FAILED: The following discrepancies were found:');
+        console.log(
+          'VERIFICATION FAILED: The following discrepancies were found:'
+        );
         for (const m of result.verificationMismatches) {
           console.log(`  - ${m}`);
         }
@@ -88,7 +100,9 @@ export const copyCommand = new Command('copy')
 
       // Print success message
       console.log('\n' + '-'.repeat(43));
-      console.log(`Done! Profile ${profileId} cloned to ${result.newProfileId}`);
+      console.log(
+        `Done! Profile ${profileId} cloned to ${result.newProfileId}`
+      );
       console.log('-'.repeat(43));
     } catch (err) {
       console.error(`Error: ${err instanceof Error ? err.message : err}`);

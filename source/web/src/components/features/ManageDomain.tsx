@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
-import { Button } from '../Button';
-import { Input } from '../Input';
-import { Card, CardHeader } from '../Card';
-import type { Profile, ListType, DomainAction } from '@/lib/types';
+import {useState} from 'react';
+import {useAuth} from '@/contexts/AuthContext';
+import {api} from '@/lib/api';
+import {Button} from '../Button';
+import {Input} from '../Input';
+import {Card, CardHeader} from '../Card';
+import type {Profile, ListType, DomainAction} from '@/lib/types';
 import styles from './ManageDomain.module.scss';
 
 interface OperationResult {
@@ -17,7 +17,7 @@ interface OperationResult {
 }
 
 export function ManageDomain() {
-  const { profiles } = useAuth();
+  const {profiles} = useAuth();
   const [domain, setDomain] = useState('');
   const [listType, setListType] = useState<ListType>('denylist');
   const [action, setAction] = useState<DomainAction>('add');
@@ -106,7 +106,9 @@ export function ManageDomain() {
       return;
     }
 
-    const targetProfiles = profiles.filter((p) => selectedProfiles.includes(p.id));
+    const targetProfiles = profiles.filter((p) =>
+      selectedProfiles.includes(p.id)
+    );
 
     setIsRunning(true);
 
@@ -256,7 +258,9 @@ export function ManageDomain() {
                 }`}
               >
                 <div className={styles.resultProfile}>
-                  <span className={styles.resultName}>{result.profileName}</span>
+                  <span className={styles.resultName}>
+                    {result.profileName}
+                  </span>
                   <span className={styles.resultId}>{result.profileId}</span>
                 </div>
                 <span className={styles.resultStatus}>

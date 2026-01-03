@@ -5,16 +5,23 @@
  * Visualize differences between NextDNS profiles in a table format.
  */
 
-import type { NextDNSApi } from './api.js';
-import type { Profile, ProfileData, ListType } from './types.js';
+import type {NextDNSApi} from './api.js';
+import type {Profile, ListType} from './types.js';
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<unknown> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
-export type DiffSection = 'all' | 'security' | 'privacy' | 'parental' | 'settings' | 'lists';
+export type DiffSection =
+  | 'all'
+  | 'security'
+  | 'privacy'
+  | 'parental'
+  | 'settings'
+  | 'lists';
 
 export interface ProfileDiffData {
   name: string;
-  denylist: Record<string, boolean>;  // domain -> active
+  denylist: Record<string, boolean>; // domain -> active
   allowlist: Record<string, boolean>;
   security: Record<string, unknown>;
   privacy: Record<string, unknown>;
@@ -24,7 +31,7 @@ export interface ProfileDiffData {
 
 export interface DiffRow {
   label: string;
-  values: Record<string, string>;  // profileId -> formatted value
+  values: Record<string, string>; // profileId -> formatted value
   hasDiff: boolean;
 }
 
@@ -52,7 +59,7 @@ export interface DiffOptions {
  * Format a cell value for display.
  * Matches Python: format_cell()
  */
-function formatValue(value: unknown, maxWidth: number = 12): string {
+function formatValue(value: unknown, maxWidth = 12): string {
   if (value === null || value === undefined) {
     return '-';
   }
@@ -88,7 +95,9 @@ function normalizeListForComparison(val: unknown): string {
   }
   // Extract IDs if list of dicts, otherwise use values directly
   if (typeof val[0] === 'object' && val[0] !== null) {
-    const ids = val.map((item: Record<string, unknown>) => item.id || String(item));
+    const ids = val.map(
+      (item: Record<string, unknown>) => item.id || String(item)
+    );
     return JSON.stringify(ids.sort());
   }
   return JSON.stringify([...val].sort());
@@ -107,7 +116,7 @@ function compareDenylistAllowlist(
   // Collect all domains
   const allDomains = new Set<string>();
   for (const pdata of Object.values(allData)) {
-    Object.keys(pdata[listType]).forEach(d => allDomains.add(d));
+    Object.keys(pdata[listType]).forEach((d) => allDomains.add(d));
   }
 
   if (allDomains.size === 0) {
@@ -135,11 +144,12 @@ function compareDenylistAllowlist(
     }
 
     // Check for differences (not all same)
-    const nonNull = states.filter(s => s !== null);
-    const hasDiff = states.some(s => s === null) ||
-      (nonNull.length > 0 && !nonNull.every(s => s === nonNull[0]));
+    const nonNull = states.filter((s) => s !== null);
+    const hasDiff =
+      states.some((s) => s === null) ||
+      (nonNull.length > 0 && !nonNull.every((s) => s === nonNull[0]));
 
-    rows.push({ label: domain, values, hasDiff });
+    rows.push({label: domain, values, hasDiff});
   }
 
   return rows;
@@ -153,7 +163,7 @@ function compareListItems(
   allData: Record<string, ProfileDiffData>,
   sectionName: keyof ProfileDiffData,
   field: string,
-  hasActiveField: boolean = false
+  hasActiveField = false
 ): DiffRow[] {
   const profileIds = Object.keys(allData);
 
@@ -194,7 +204,7 @@ function compareListItems(
             const obj = item as Record<string, unknown>;
             itemMap[String(obj.id || item)] = obj;
           } else {
-            itemMap[String(item)] = { id: String(item) };
+            itemMap[String(item)] = {id: String(item)};
           }
         }
       }
@@ -214,8 +224,8 @@ function compareListItems(
       }
     }
 
-    const hasDiff = !states.every(s => s === states[0]);
-    rows.push({ label: itemId, values, hasDiff });
+    const hasDiff = !states.every((s) => s === states[0]);
+    rows.push({label: itemId, values, hasDiff});
   }
 
   return rows;
@@ -244,8 +254,8 @@ function compareSettings(
       compareValues.push(normalizeListForComparison(val));
     }
 
-    const hasDiff = !compareValues.every(v => v === compareValues[0]);
-    rows.push({ label: field, values, hasDiff });
+    const hasDiff = !compareValues.every((v) => v === compareValues[0]);
+    rows.push({label: field, values, hasDiff});
   }
 
   return rows;
@@ -264,26 +274,36 @@ function compareNestedSettings(
   const rows: DiffRow[] = [];
 
   // Get sample to discover nested structure
-  const sampleSection = allData[profileIds[0]][sectionName] as Record<string, unknown>;
+  const sampleSection = allData[profileIds[0]][sectionName] as Record<
+    string,
+    unknown
+  >;
 
   for (const field of fields) {
     const fieldValue = sampleSection?.[field];
 
-    if (typeof fieldValue === 'object' && fieldValue !== null && !Array.isArray(fieldValue)) {
+    if (
+      typeof fieldValue === 'object' &&
+      fieldValue !== null &&
+      !Array.isArray(fieldValue)
+    ) {
       // Nested object - expand each subfield
       for (const subfield of Object.keys(fieldValue).sort()) {
         const values: Record<string, string> = {};
         const compareValues: string[] = [];
 
         for (const pid of profileIds) {
-          const section = allData[pid][sectionName] as Record<string, Record<string, unknown>>;
+          const section = allData[pid][sectionName] as Record<
+            string,
+            Record<string, unknown>
+          >;
           const val = section?.[field]?.[subfield];
           values[pid] = formatValue(val);
           compareValues.push(normalizeListForComparison(val));
         }
 
-        const hasDiff = !compareValues.every(v => v === compareValues[0]);
-        rows.push({ label: `${field}.${subfield}`, values, hasDiff });
+        const hasDiff = !compareValues.every((v) => v === compareValues[0]);
+        rows.push({label: `${field}.${subfield}`, values, hasDiff});
       }
     } else {
       // Flat field
@@ -297,8 +317,8 @@ function compareNestedSettings(
         compareValues.push(normalizeListForComparison(val));
       }
 
-      const hasDiff = !compareValues.every(v => v === compareValues[0]);
-      rows.push({ label: field, values, hasDiff });
+      const hasDiff = !compareValues.every((v) => v === compareValues[0]);
+      rows.push({label: field, values, hasDiff});
     }
   }
 
@@ -316,16 +336,16 @@ async function fetchProfileData(
   const allData: Record<string, ProfileDiffData> = {};
 
   for (const profile of profiles) {
-    await sleep(300);  // Rate limiting
+    await sleep(300); // Rate limiting
     const data = await api.getProfile(profile.id, apiKey);
 
     allData[profile.id] = {
       name: profile.name,
       denylist: Object.fromEntries(
-        (data.denylist || []).map(d => [d.id, d.active])
+        (data.denylist || []).map((d) => [d.id, d.active])
       ),
       allowlist: Object.fromEntries(
-        (data.allowlist || []).map(d => [d.id, d.active])
+        (data.allowlist || []).map((d) => [d.id, d.active])
       ),
       security: (data.security || {}) as Record<string, unknown>,
       privacy: (data.privacy || {}) as Record<string, unknown>,
@@ -353,7 +373,7 @@ function generateDiffTables(
     rows: DiffRow[],
     legend?: string
   ): DiffTable | null => {
-    const displayRows = diffOnly ? rows.filter(r => r.hasDiff) : rows;
+    const displayRows = diffOnly ? rows.filter((r) => r.hasDiff) : rows;
     if (displayRows.length === 0) {
       return null;
     }
@@ -361,16 +381,25 @@ function generateDiffTables(
       title,
       legend,
       rows: displayRows,
-      diffCount: rows.filter(r => r.hasDiff).length,
+      diffCount: rows.filter((r) => r.hasDiff).length,
     };
   };
 
   // Security settings
   if (section === 'all' || section === 'security') {
     const securityFields = [
-      'threatIntelligenceFeeds', 'aiThreatDetection', 'googleSafeBrowsing',
-      'cryptojacking', 'dnsRebinding', 'idnHomographs', 'typosquatting',
-      'dga', 'nrd', 'ddns', 'parking', 'csam'
+      'threatIntelligenceFeeds',
+      'aiThreatDetection',
+      'googleSafeBrowsing',
+      'cryptojacking',
+      'dnsRebinding',
+      'idnHomographs',
+      'typosquatting',
+      'dga',
+      'nrd',
+      'ddns',
+      'parking',
+      'csam',
     ];
     const rows = compareSettings(allData, 'security', securityFields);
     const table = createTable('Security Settings', rows);
@@ -391,13 +420,21 @@ function generateDiffTables(
 
     // Natives detail
     rows = compareListItems(allData, 'privacy', 'natives');
-    table = createTable('Native Tracking Protection', rows, 'Legend: ✓=enabled, -=not enabled');
+    table = createTable(
+      'Native Tracking Protection',
+      rows,
+      'Legend: ✓=enabled, -=not enabled'
+    );
     if (table) tables.push(table);
   }
 
   // Parental Control settings
   if (section === 'all' || section === 'parental') {
-    const parentalFields = ['safeSearch', 'youtubeRestrictedMode', 'blockBypass'];
+    const parentalFields = [
+      'safeSearch',
+      'youtubeRestrictedMode',
+      'blockBypass',
+    ];
     let rows = compareSettings(allData, 'parentalControl', parentalFields);
     let table = createTable('Parental Control Settings', rows);
     if (table) tables.push(table);
@@ -432,11 +469,19 @@ function generateDiffTables(
   // Denylist and Allowlist
   if (section === 'all' || section === 'lists') {
     let rows = compareDenylistAllowlist(allData, 'denylist');
-    let table = createTable('Denylist', rows, 'Legend: ✓=enabled, ✗=disabled, -=missing');
+    let table = createTable(
+      'Denylist',
+      rows,
+      'Legend: ✓=enabled, ✗=disabled, -=missing'
+    );
     if (table) tables.push(table);
 
     rows = compareDenylistAllowlist(allData, 'allowlist');
-    table = createTable('Allowlist', rows, 'Legend: ✓=enabled, ✗=disabled, -=missing');
+    table = createTable(
+      'Allowlist',
+      rows,
+      'Legend: ✓=enabled, ✗=disabled, -=missing'
+    );
     if (table) tables.push(table);
   }
 
@@ -451,16 +496,18 @@ export async function diffProfiles(
   api: NextDNSApi,
   options: DiffOptions
 ): Promise<DiffResult> {
-  const { apiKey, profileIds, section, diffOnly = false } = options;
+  const {apiKey, profileIds, section, diffOnly = false} = options;
 
   // Get all profiles
   let profiles: Profile[] = await api.getProfiles(apiKey);
 
   // Filter to specified profiles if provided
   if (profileIds && profileIds.length > 0) {
-    profiles = profiles.filter(p => profileIds.includes(p.id));
+    profiles = profiles.filter((p) => profileIds.includes(p.id));
     if (profiles.length === 0) {
-      throw new Error(`None of the specified profiles found: ${profileIds.join(', ')}`);
+      throw new Error(
+        `None of the specified profiles found: ${profileIds.join(', ')}`
+      );
     }
   }
 
@@ -492,7 +539,7 @@ export async function diffProfiles(
  * Matches Python: print_table()
  */
 export function formatDiffAsText(result: DiffResult): string {
-  const { profileIds, profileNames, tables } = result;
+  const {profileIds, profileNames, tables} = result;
   const lines: string[] = [];
 
   const colWidths = [32, ...profileIds.map(() => 14)];
@@ -501,7 +548,9 @@ export function formatDiffAsText(result: DiffResult): string {
     lines.push('='.repeat(60));
     lines.push(table.title);
     if (table.diffCount > 0) {
-      lines.push(`(${table.rows.length} total, ${table.diffCount} differences)`);
+      lines.push(
+        `(${table.rows.length} total, ${table.diffCount} differences)`
+      );
     }
     lines.push('='.repeat(60));
 
@@ -511,17 +560,23 @@ export function formatDiffAsText(result: DiffResult): string {
     }
 
     // Header row
-    const headers = ['Setting', ...profileIds.map(pid => profileNames[pid].slice(0, 12))];
+    const headers = [
+      'Setting',
+      ...profileIds.map((pid) => profileNames[pid].slice(0, 12)),
+    ];
     const headerRow = headers.map((h, i) => h.padEnd(colWidths[i])).join(' | ');
     lines.push(headerRow);
-    lines.push(colWidths.map(w => '-'.repeat(w)).join('-+-'));
+    lines.push(colWidths.map((w) => '-'.repeat(w)).join('-+-'));
 
     // Data rows
     for (const row of table.rows) {
       const cells = [
         row.label.slice(0, 30).padEnd(colWidths[0]),
         ...profileIds.map((pid, i) =>
-          (row.values[pid] || '-').toString().padStart(Math.floor(colWidths[i + 1] / 2)).padEnd(colWidths[i + 1])
+          (row.values[pid] || '-')
+            .toString()
+            .padStart(Math.floor(colWidths[i + 1] / 2))
+            .padEnd(colWidths[i + 1])
         ),
       ];
       const rowStr = cells.join(' | ');

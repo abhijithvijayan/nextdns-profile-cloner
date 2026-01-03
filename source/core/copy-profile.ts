@@ -5,7 +5,7 @@
  * Clone a NextDNS profile to a new profile (same or different account).
  */
 
-import type { NextDNSApi } from './api.js';
+import type {NextDNSApi} from './api.js';
 import type {
   ProfileData,
   ProfileSecurity,
@@ -22,7 +22,7 @@ import type {
 } from './types.js';
 
 // Re-export for convenience
-export { KNOWN_FIELDS, SKIPPED_FIELDS } from './types.js';
+export {KNOWN_FIELDS, SKIPPED_FIELDS} from './types.js';
 
 export interface CopyProfileOptions {
   sourceApiKey: string;
@@ -59,14 +59,48 @@ export function validateApiSchema(sourceData: ProfileData): string[] {
   const warnings: string[] = [];
 
   const KNOWN_FIELDS = {
-    root: new Set(['id', 'fingerprint', 'name', 'setup', 'security', 'privacy',
-      'parentalControl', 'denylist', 'allowlist', 'settings', 'rewrites']),
-    security: new Set(['threatIntelligenceFeeds', 'aiThreatDetection', 'googleSafeBrowsing',
-      'cryptojacking', 'dnsRebinding', 'idnHomographs', 'typosquatting',
-      'dga', 'nrd', 'ddns', 'parking', 'csam', 'tlds']),
-    privacy: new Set(['disguisedTrackers', 'allowAffiliate', 'blocklists', 'natives']),
-    parentalControl: new Set(['safeSearch', 'youtubeRestrictedMode', 'blockBypass',
-      'services', 'categories', 'recreation']),
+    root: new Set([
+      'id',
+      'fingerprint',
+      'name',
+      'setup',
+      'security',
+      'privacy',
+      'parentalControl',
+      'denylist',
+      'allowlist',
+      'settings',
+      'rewrites',
+    ]),
+    security: new Set([
+      'threatIntelligenceFeeds',
+      'aiThreatDetection',
+      'googleSafeBrowsing',
+      'cryptojacking',
+      'dnsRebinding',
+      'idnHomographs',
+      'typosquatting',
+      'dga',
+      'nrd',
+      'ddns',
+      'parking',
+      'csam',
+      'tlds',
+    ]),
+    privacy: new Set([
+      'disguisedTrackers',
+      'allowAffiliate',
+      'blocklists',
+      'natives',
+    ]),
+    parentalControl: new Set([
+      'safeSearch',
+      'youtubeRestrictedMode',
+      'blockBypass',
+      'services',
+      'categories',
+      'recreation',
+    ]),
     settings: new Set(['logs', 'blockPage', 'performance', 'web3', 'bav']),
     'settings.logs': new Set(['enabled', 'drop', 'retention', 'location']),
     'settings.performance': new Set(['ecs', 'cacheBoost', 'cnameFlattening']),
@@ -82,9 +116,11 @@ export function validateApiSchema(sourceData: ProfileData): string[] {
     knownSet: Set<string>,
     skippedSet: Set<string>,
     path: string
-  ) => {
+  ): void => {
     if (typeof data !== 'object' || data === null) return;
-    const unknown = Object.keys(data).filter(k => !knownSet.has(k) && !skippedSet.has(k));
+    const unknown = Object.keys(data).filter(
+      (k) => !knownSet.has(k) && !skippedSet.has(k)
+    );
     if (unknown.length > 0) {
       warnings.push(`Unknown field(s) at '${path}': ${unknown.join(', ')}`);
     }
@@ -158,7 +194,9 @@ export function validateApiSchema(sourceData: ProfileData): string[] {
  * Reconstruct payload for creating a new profile.
  * Matches Python: reconstruct_payload()
  */
-export function reconstructPayload(sourceData: ProfileData): Partial<ProfileData> {
+export function reconstructPayload(
+  sourceData: ProfileData
+): Partial<ProfileData> {
   const payload: Partial<ProfileData> = {};
 
   // Append " (Copy)" to avoid duplicate name errors
@@ -183,7 +221,9 @@ export function reconstructPayload(sourceData: ProfileData): Partial<ProfileData
     } as ProfileSecurity;
 
     if (sec.tlds) {
-      payload.security.tlds = sec.tlds.map((t: TldEntry) => ({ id: t.id }));
+      payload.security.tlds = sec.tlds.map((t: TldEntry) => {
+        return {id: t.id};
+      });
     }
   }
 
@@ -195,10 +235,14 @@ export function reconstructPayload(sourceData: ProfileData): Partial<ProfileData
     } as ProfilePrivacy;
 
     if (priv.blocklists) {
-      payload.privacy.blocklists = priv.blocklists.map((b: BlocklistEntry) => ({ id: b.id }));
+      payload.privacy.blocklists = priv.blocklists.map((b: BlocklistEntry) => {
+        return {id: b.id};
+      });
     }
     if (priv.natives) {
-      payload.privacy.natives = priv.natives.map((n: NativeEntry) => ({ id: n.id }));
+      payload.privacy.natives = priv.natives.map((n: NativeEntry) => {
+        return {id: n.id};
+      });
     }
   }
 
@@ -211,33 +255,43 @@ export function reconstructPayload(sourceData: ProfileData): Partial<ProfileData
     } as ProfileParentalControl;
 
     if (pc.services) {
-      payload.parentalControl.services = pc.services.map((s: ServiceEntry) => ({
-        id: s.id,
-        active: s.active ?? false,
-      }));
+      payload.parentalControl.services = pc.services.map((s: ServiceEntry) => {
+        return {
+          id: s.id,
+          active: s.active ?? false,
+        };
+      });
     }
     if (pc.categories) {
-      payload.parentalControl.categories = pc.categories.map((c: CategoryEntry) => ({
-        id: c.id,
-        active: c.active ?? false,
-      }));
+      payload.parentalControl.categories = pc.categories.map(
+        (c: CategoryEntry) => {
+          return {
+            id: c.id,
+            active: c.active ?? false,
+          };
+        }
+      );
     }
     // Note: 'recreation' field is returned by API but not documented for write operations
     // Uncommenting this will cause 500 errors on profile creation
   }
 
   if (sourceData.denylist) {
-    payload.denylist = sourceData.denylist.map((d: DomainEntry) => ({
-      id: d.id,
-      active: d.active ?? true,
-    }));
+    payload.denylist = sourceData.denylist.map((d: DomainEntry) => {
+      return {
+        id: d.id,
+        active: d.active ?? true,
+      };
+    });
   }
 
   if (sourceData.allowlist) {
-    payload.allowlist = sourceData.allowlist.map((a: DomainEntry) => ({
-      id: a.id,
-      active: a.active ?? true,
-    }));
+    payload.allowlist = sourceData.allowlist.map((a: DomainEntry) => {
+      return {
+        id: a.id,
+        active: a.active ?? true,
+      };
+    });
   }
 
   if (sourceData.settings) {
@@ -274,7 +328,7 @@ async function copyRewrites(
   destApiKey: string,
   sourceProfileId: string,
   destProfileId: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<{success: boolean; message: string}> {
   // Fetch rewrites from source
   let rewrites: RewriteEntry[];
   try {
@@ -282,25 +336,33 @@ async function copyRewrites(
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     if (error.includes('404')) {
-      return { success: true, message: 'Rewrites endpoint not found or not supported' };
+      return {
+        success: true,
+        message: 'Rewrites endpoint not found or not supported',
+      };
     }
-    return { success: false, message: `Could not fetch rewrites: ${error}` };
+    return {success: false, message: `Could not fetch rewrites: ${error}`};
   }
 
   if (!rewrites || rewrites.length === 0) {
-    return { success: true, message: 'No rewrites found to copy' };
+    return {success: true, message: 'No rewrites found to copy'};
   }
 
   // Clean rewrites (remove id and type fields)
-  const cleanRewrites = rewrites.map(r => ({
-    name: r.name,
-    content: r.content,
-  }));
+  const cleanRewrites = rewrites.map((r) => {
+    return {
+      name: r.name,
+      content: r.content,
+    };
+  });
 
   // Try PUT first (bulk update)
   try {
     await api.putRewrites(destProfileId, cleanRewrites, destApiKey);
-    return { success: true, message: `Copied ${rewrites.length} rewrites (PUT method)` };
+    return {
+      success: true,
+      message: `Copied ${rewrites.length} rewrites (PUT method)`,
+    };
   } catch {
     // PUT failed, try POST one by one
     let count = 0;
@@ -333,8 +395,8 @@ async function verifyClone(
   const mismatches: string[] = [];
 
   // Fetch both profiles with rewrites
-  let src: ProfileData & { rewrites?: RewriteEntry[] };
-  let dst: ProfileData & { rewrites?: RewriteEntry[] };
+  let src: ProfileData & {rewrites?: RewriteEntry[]};
+  let dst: ProfileData & {rewrites?: RewriteEntry[]};
 
   try {
     src = await api.getProfile(sourceProfileId, sourceApiKey);
@@ -363,9 +425,18 @@ async function verifyClone(
   const dSec = dst.security;
   if (sSec && dSec) {
     const securityKeys: (keyof ProfileSecurity)[] = [
-      'threatIntelligenceFeeds', 'aiThreatDetection', 'googleSafeBrowsing',
-      'cryptojacking', 'dnsRebinding', 'idnHomographs', 'typosquatting',
-      'dga', 'nrd', 'ddns', 'parking', 'csam'
+      'threatIntelligenceFeeds',
+      'aiThreatDetection',
+      'googleSafeBrowsing',
+      'cryptojacking',
+      'dnsRebinding',
+      'idnHomographs',
+      'typosquatting',
+      'dga',
+      'nrd',
+      'ddns',
+      'parking',
+      'csam',
     ];
     for (const k of securityKeys) {
       if (sSec[k] !== dSec[k]) {
@@ -376,7 +447,9 @@ async function verifyClone(
     // Security TLDs
     const sTlds = new Set((sSec.tlds || []).map((t: TldEntry) => t.id));
     const dTlds = new Set((dSec.tlds || []).map((t: TldEntry) => t.id));
-    const tldDiff = [...sTlds].filter(x => !dTlds.has(x)).concat([...dTlds].filter(x => !sTlds.has(x)));
+    const tldDiff = [...sTlds]
+      .filter((x) => !dTlds.has(x))
+      .concat([...dTlds].filter((x) => !sTlds.has(x)));
     if (tldDiff.length > 0) {
       mismatches.push(`Security TLDs mismatch. Diff: ${tldDiff.join(', ')}`);
     }
@@ -393,9 +466,15 @@ async function verifyClone(
     }
 
     // Blocklists
-    const sBl = new Set((sPriv.blocklists || []).map((x: BlocklistEntry) => x.id));
-    const dBl = new Set((dPriv.blocklists || []).map((x: BlocklistEntry) => x.id));
-    const blDiff = [...sBl].filter(x => !dBl.has(x)).concat([...dBl].filter(x => !sBl.has(x)));
+    const sBl = new Set(
+      (sPriv.blocklists || []).map((x: BlocklistEntry) => x.id)
+    );
+    const dBl = new Set(
+      (dPriv.blocklists || []).map((x: BlocklistEntry) => x.id)
+    );
+    const blDiff = [...sBl]
+      .filter((x) => !dBl.has(x))
+      .concat([...dBl].filter((x) => !sBl.has(x)));
     if (blDiff.length > 0) {
       mismatches.push(`Blocklists mismatch. Diff: ${blDiff.join(', ')}`);
     }
@@ -403,9 +482,13 @@ async function verifyClone(
     // Natives
     const sNat = new Set((sPriv.natives || []).map((x: NativeEntry) => x.id));
     const dNat = new Set((dPriv.natives || []).map((x: NativeEntry) => x.id));
-    const natDiff = [...sNat].filter(x => !dNat.has(x)).concat([...dNat].filter(x => !sNat.has(x)));
+    const natDiff = [...sNat]
+      .filter((x) => !dNat.has(x))
+      .concat([...dNat].filter((x) => !sNat.has(x)));
     if (natDiff.length > 0) {
-      mismatches.push(`Native blocklists mismatch. Diff: ${natDiff.join(', ')}`);
+      mismatches.push(
+        `Native blocklists mismatch. Diff: ${natDiff.join(', ')}`
+      );
     }
   }
 
@@ -413,22 +496,42 @@ async function verifyClone(
   const sPc = src.parentalControl;
   const dPc = dst.parentalControl;
   if (sPc && dPc) {
-    for (const k of ['safeSearch', 'youtubeRestrictedMode', 'blockBypass'] as const) {
+    for (const k of [
+      'safeSearch',
+      'youtubeRestrictedMode',
+      'blockBypass',
+    ] as const) {
       if (sPc[k] !== dPc[k]) {
-        mismatches.push(`Parental Control '${k}': Source=${sPc[k]}, Dest=${dPc[k]}`);
+        mismatches.push(
+          `Parental Control '${k}': Source=${sPc[k]}, Dest=${dPc[k]}`
+        );
       }
     }
 
     // Services
-    const sSrv = Object.fromEntries((sPc.services || []).map((x: ServiceEntry) => [x.id, x.active ?? false]));
-    const dSrv = Object.fromEntries((dPc.services || []).map((x: ServiceEntry) => [x.id, x.active ?? false]));
+    const sSrv = Object.fromEntries(
+      (sPc.services || []).map((x: ServiceEntry) => [x.id, x.active ?? false])
+    );
+    const dSrv = Object.fromEntries(
+      (dPc.services || []).map((x: ServiceEntry) => [x.id, x.active ?? false])
+    );
     if (JSON.stringify(sSrv) !== JSON.stringify(dSrv)) {
       mismatches.push('Parental Services mismatch');
     }
 
     // Categories
-    const sCat = Object.fromEntries((sPc.categories || []).map((x: CategoryEntry) => [x.id, x.active ?? false]));
-    const dCat = Object.fromEntries((dPc.categories || []).map((x: CategoryEntry) => [x.id, x.active ?? false]));
+    const sCat = Object.fromEntries(
+      (sPc.categories || []).map((x: CategoryEntry) => [
+        x.id,
+        x.active ?? false,
+      ])
+    );
+    const dCat = Object.fromEntries(
+      (dPc.categories || []).map((x: CategoryEntry) => [
+        x.id,
+        x.active ?? false,
+      ])
+    );
     if (JSON.stringify(sCat) !== JSON.stringify(dCat)) {
       mismatches.push('Parental Categories mismatch');
     }
@@ -438,10 +541,16 @@ async function verifyClone(
 
   // Denylist and Allowlist
   for (const listType of ['denylist', 'allowlist'] as const) {
-    const sL = Object.fromEntries((src[listType] || []).map((x: DomainEntry) => [x.id, x.active ?? true]));
-    const dL = Object.fromEntries((dst[listType] || []).map((x: DomainEntry) => [x.id, x.active ?? true]));
+    const sL = Object.fromEntries(
+      (src[listType] || []).map((x: DomainEntry) => [x.id, x.active ?? true])
+    );
+    const dL = Object.fromEntries(
+      (dst[listType] || []).map((x: DomainEntry) => [x.id, x.active ?? true])
+    );
     if (Object.keys(sL).length !== Object.keys(dL).length) {
-      mismatches.push(`${listType} mismatch. Source count=${Object.keys(sL).length}, Dest count=${Object.keys(dL).length}`);
+      mismatches.push(
+        `${listType} mismatch. Source count=${Object.keys(sL).length}, Dest count=${Object.keys(dL).length}`
+      );
     }
   }
 
@@ -449,22 +558,34 @@ async function verifyClone(
   const sSet = src.settings;
   const dSet = dst.settings;
   if (sSet && dSet) {
-    for (const k of ['logs', 'blockPage', 'performance', 'web3', 'bav'] as const) {
+    for (const k of [
+      'logs',
+      'blockPage',
+      'performance',
+      'web3',
+      'bav',
+    ] as const) {
       if (JSON.stringify(sSet[k]) !== JSON.stringify(dSet[k])) {
         mismatches.push(`Settings '${k}' mismatch`);
       }
     }
   } else if (sSet || dSet) {
-    mismatches.push('Settings mismatch: one profile has settings, the other does not');
+    mismatches.push(
+      'Settings mismatch: one profile has settings, the other does not'
+    );
   }
 
   // Rewrites
-  const cleanRw = (rwList: RewriteEntry[]) =>
-    new Set(rwList.map(r => JSON.stringify({ name: r.name, content: r.content })));
+  const cleanRw = (rwList: RewriteEntry[]): Set<string> =>
+    new Set(
+      rwList.map((r) => JSON.stringify({name: r.name, content: r.content}))
+    );
   const sRw = cleanRw(src.rewrites || []);
   const dRw = cleanRw(dst.rewrites || []);
-  if (sRw.size !== dRw.size || ![...sRw].every(x => dRw.has(x))) {
-    mismatches.push(`Rewrites mismatch. Source count=${sRw.size}, Dest count=${dRw.size}`);
+  if (sRw.size !== dRw.size || ![...sRw].every((x) => dRw.has(x))) {
+    mismatches.push(
+      `Rewrites mismatch. Source count=${sRw.size}, Dest count=${dRw.size}`
+    );
   }
 
   return mismatches;
@@ -485,7 +606,9 @@ function getSkippedFields(sourceData: ProfileData): string[] {
   }
 
   if (sourceData.parentalControl?.recreation) {
-    skipped.push('parentalControl.recreation: Not supported by API for write operations');
+    skipped.push(
+      'parentalControl.recreation: Not supported by API for write operations'
+    );
   }
 
   return skipped;
@@ -500,8 +623,8 @@ export async function copyProfile(
   options: CopyProfileOptions,
   callbacks: CopyCallbacks = {}
 ): Promise<CopyResult> {
-  const { sourceApiKey, destApiKey, sourceProfileId, force } = options;
-  const { onStepStart, onStepComplete, onWarning } = callbacks;
+  const {sourceApiKey, destApiKey, sourceProfileId, force} = options;
+  const {onStepStart, onStepComplete, onWarning} = callbacks;
 
   const result: CopyResult = {
     success: false,
@@ -515,7 +638,11 @@ export async function copyProfile(
   let sourceData: ProfileData;
   try {
     sourceData = await api.getProfile(sourceProfileId, sourceApiKey);
-    onStepComplete?.('Fetch source profile', true, `Fetched "${sourceData.name}"`);
+    onStepComplete?.(
+      'Fetch source profile',
+      true,
+      `Fetched "${sourceData.name}"`
+    );
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     onStepComplete?.('Fetch source profile', false, error);
@@ -548,7 +675,11 @@ export async function copyProfile(
     const newProfile = await api.createProfile(payload, destApiKey);
     newProfileId = newProfile.id;
     result.newProfileId = newProfileId;
-    onStepComplete?.('Create new profile', true, `Created profile: ${newProfileId}`);
+    onStepComplete?.(
+      'Create new profile',
+      true,
+      `Created profile: ${newProfileId}`
+    );
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     onStepComplete?.('Create new profile', false, error);
@@ -564,7 +695,11 @@ export async function copyProfile(
     sourceProfileId,
     newProfileId
   );
-  onStepComplete?.('Copy rewrites', rewriteResult.success, rewriteResult.message);
+  onStepComplete?.(
+    'Copy rewrites',
+    rewriteResult.success,
+    rewriteResult.message
+  );
 
   // Step 4: Verify clone
   onStepStart?.('Verify clone');
@@ -580,7 +715,11 @@ export async function copyProfile(
   if (mismatches.length === 0) {
     onStepComplete?.('Verify clone', true, 'Profile verified successfully');
   } else {
-    onStepComplete?.('Verify clone', false, `${mismatches.length} discrepancies found`);
+    onStepComplete?.(
+      'Verify clone',
+      false,
+      `${mismatches.length} discrepancies found`
+    );
   }
 
   // Get skipped fields

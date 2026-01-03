@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 import styles from './Card.module.scss';
 
 interface CardProps {
@@ -7,7 +7,11 @@ interface CardProps {
   padding?: 'none' | 'small' | 'medium' | 'large';
 }
 
-export function Card({ children, className = '', padding = 'medium' }: CardProps) {
+export function Card({
+  children,
+  className = '',
+  padding = 'medium',
+}: CardProps) {
   return (
     <div className={`${styles.card} ${styles[padding]} ${className}`}>
       {children}
@@ -21,7 +25,7 @@ interface CardHeaderProps {
   action?: ReactNode;
 }
 
-export function CardHeader({ title, description, action }: CardHeaderProps) {
+export function CardHeader({title, description, action}: CardHeaderProps) {
   return (
     <div className={styles.header}>
       <div className={styles.headerText}>

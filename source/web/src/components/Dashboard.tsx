@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from './Button';
-import { ManageDomain } from './features/ManageDomain';
-import { DiffProfiles } from './features/DiffProfiles';
-import { SyncLists } from './features/SyncLists';
-import { CopyProfile } from './features/CopyProfile';
+import {useState} from 'react';
+import {useAuth} from '@/contexts/AuthContext';
+import {Button} from './Button';
+import {ManageDomain} from './features/ManageDomain';
+import {DiffProfiles} from './features/DiffProfiles';
+import {SyncLists} from './features/SyncLists';
+import {CopyProfile} from './features/CopyProfile';
 import styles from './Dashboard.module.scss';
 
 type Tab = 'manage' | 'diff' | 'sync' | 'copy';
 
-const TABS: { id: Tab; label: string; description: string }[] = [
+const TABS: {id: Tab; label: string; description: string}[] = [
   {
     id: 'manage',
     label: 'Manage Domains',
@@ -35,7 +35,7 @@ const TABS: { id: Tab; label: string; description: string }[] = [
 ];
 
 export function Dashboard() {
-  const { profiles, logout } = useAuth();
+  const {profiles, logout} = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('manage');
 
   const renderContent = () => {

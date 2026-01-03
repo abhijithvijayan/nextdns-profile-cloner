@@ -1,14 +1,20 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
-import { Button } from '../Button';
-import { Card, CardHeader } from '../Card';
-import type { Profile, ProfileData } from '@/lib/types';
+import {useState, useCallback} from 'react';
+import {useAuth} from '@/contexts/AuthContext';
+import {api} from '@/lib/api';
+import {Button} from '../Button';
+import {Card, CardHeader} from '../Card';
+import type {Profile, ProfileData} from '@/lib/types';
 import styles from './DiffProfiles.module.scss';
 
-type Section = 'all' | 'security' | 'privacy' | 'parental' | 'settings' | 'lists';
+type Section =
+  | 'all'
+  | 'security'
+  | 'privacy'
+  | 'parental'
+  | 'settings'
+  | 'lists';
 
 interface ProfileDataMap {
   [profileId: string]: {
@@ -28,17 +34,17 @@ interface ComparisonRow {
   hasDiff: boolean;
 }
 
-const SECTIONS: { id: Section; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'security', label: 'Security' },
-  { id: 'privacy', label: 'Privacy' },
-  { id: 'parental', label: 'Parental Control' },
-  { id: 'settings', label: 'Settings' },
-  { id: 'lists', label: 'Lists' },
+const SECTIONS: {id: Section; label: string}[] = [
+  {id: 'all', label: 'All'},
+  {id: 'security', label: 'Security'},
+  {id: 'privacy', label: 'Privacy'},
+  {id: 'parental', label: 'Parental Control'},
+  {id: 'settings', label: 'Settings'},
+  {id: 'lists', label: 'Lists'},
 ];
 
 export function DiffProfiles() {
-  const { profiles } = useAuth();
+  const {profiles} = useAuth();
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [section, setSection] = useState<Section>('all');
   const [diffOnly, setDiffOnly] = useState(false);
@@ -70,7 +76,9 @@ export function DiffProfiles() {
       return;
     }
 
-    const targetProfiles = profiles.filter((p) => selectedProfiles.includes(p.id));
+    const targetProfiles = profiles.filter((p) =>
+      selectedProfiles.includes(p.id)
+    );
 
     setIsLoading(true);
 
@@ -89,14 +97,19 @@ export function DiffProfiles() {
           ),
           security: (data.security || {}) as unknown as Record<string, unknown>,
           privacy: (data.privacy || {}) as unknown as Record<string, unknown>,
-          parentalControl: (data.parentalControl || {}) as unknown as Record<string, unknown>,
+          parentalControl: (data.parentalControl || {}) as unknown as Record<
+            string,
+            unknown
+          >,
           settings: (data.settings || {}) as unknown as Record<string, unknown>,
         };
       }
 
       setProfileData(dataMap);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch profile data');
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch profile data'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -112,10 +125,7 @@ export function DiffProfiles() {
   };
 
   const compareSettings = useCallback(
-    (
-      sectionName: string,
-      fields: string[]
-    ): ComparisonRow[] => {
+    (sectionName: string, fields: string[]): ComparisonRow[] => {
       if (!profileData) return [];
 
       const profileIds = Object.keys(profileData);
@@ -126,14 +136,18 @@ export function DiffProfiles() {
         const rawValues: unknown[] = [];
 
         for (const pid of profileIds) {
-          const sectionData = profileData[pid][sectionName as keyof typeof profileData[string]] as Record<string, unknown>;
+          const sectionData = profileData[pid][
+            sectionName as keyof (typeof profileData)[string]
+          ] as Record<string, unknown>;
           const val = sectionData?.[field];
           values.push(formatValue(val));
           rawValues.push(val);
         }
 
-        const hasDiff = !rawValues.every((v) => JSON.stringify(v) === JSON.stringify(rawValues[0]));
-        rows.push({ label: field, values, hasDiff });
+        const hasDiff = !rawValues.every(
+          (v) => JSON.stringify(v) === JSON.stringify(rawValues[0])
+        );
+        rows.push({label: field, values, hasDiff});
       }
 
       return rows;
@@ -142,34 +156,41 @@ export function DiffProfiles() {
   );
 
   const compareNestedSettings = useCallback(
-    (
-      sectionName: string,
-      fields: string[]
-    ): ComparisonRow[] => {
+    (sectionName: string, fields: string[]): ComparisonRow[] => {
       if (!profileData) return [];
 
       const profileIds = Object.keys(profileData);
       const rows: ComparisonRow[] = [];
 
       for (const field of fields) {
-        const sampleSection = profileData[profileIds[0]][sectionName as keyof typeof profileData[string]] as Record<string, unknown>;
+        const sampleSection = profileData[profileIds[0]][
+          sectionName as keyof (typeof profileData)[string]
+        ] as Record<string, unknown>;
         const fieldValue = sampleSection?.[field];
 
-        if (typeof fieldValue === 'object' && fieldValue !== null && !Array.isArray(fieldValue)) {
+        if (
+          typeof fieldValue === 'object' &&
+          fieldValue !== null &&
+          !Array.isArray(fieldValue)
+        ) {
           // Nested object - expand each subfield
           for (const subfield of Object.keys(fieldValue)) {
             const values: (string | boolean | null)[] = [];
             const rawValues: unknown[] = [];
 
             for (const pid of profileIds) {
-              const sectionData = profileData[pid][sectionName as keyof typeof profileData[string]] as Record<string, Record<string, unknown>>;
+              const sectionData = profileData[pid][
+                sectionName as keyof (typeof profileData)[string]
+              ] as Record<string, Record<string, unknown>>;
               const val = sectionData?.[field]?.[subfield];
               values.push(formatValue(val));
               rawValues.push(val);
             }
 
-            const hasDiff = !rawValues.every((v) => JSON.stringify(v) === JSON.stringify(rawValues[0]));
-            rows.push({ label: `${field}.${subfield}`, values, hasDiff });
+            const hasDiff = !rawValues.every(
+              (v) => JSON.stringify(v) === JSON.stringify(rawValues[0])
+            );
+            rows.push({label: `${field}.${subfield}`, values, hasDiff});
           }
         } else {
           // Flat field
@@ -177,14 +198,18 @@ export function DiffProfiles() {
           const rawValues: unknown[] = [];
 
           for (const pid of profileIds) {
-            const sectionData = profileData[pid][sectionName as keyof typeof profileData[string]] as Record<string, unknown>;
+            const sectionData = profileData[pid][
+              sectionName as keyof (typeof profileData)[string]
+            ] as Record<string, unknown>;
             const val = sectionData?.[field];
             values.push(formatValue(val));
             rawValues.push(val);
           }
 
-          const hasDiff = !rawValues.every((v) => JSON.stringify(v) === JSON.stringify(rawValues[0]));
-          rows.push({ label: field, values, hasDiff });
+          const hasDiff = !rawValues.every(
+            (v) => JSON.stringify(v) === JSON.stringify(rawValues[0])
+          );
+          rows.push({label: field, values, hasDiff});
         }
       }
 
@@ -201,7 +226,9 @@ export function DiffProfiles() {
       const allDomains = new Set<string>();
 
       for (const pid of profileIds) {
-        Object.keys(profileData[pid][listType]).forEach((d) => allDomains.add(d));
+        Object.keys(profileData[pid][listType]).forEach((d) =>
+          allDomains.add(d)
+        );
       }
 
       const rows: ComparisonRow[] = [];
@@ -225,7 +252,7 @@ export function DiffProfiles() {
         }
 
         const hasDiff = !states.every((s) => s === states[0]);
-        rows.push({ label: domain, values, hasDiff });
+        rows.push({label: domain, values, hasDiff});
       }
 
       return rows;
@@ -234,14 +261,20 @@ export function DiffProfiles() {
   );
 
   const compareListItems = useCallback(
-    (sectionName: string, field: string, hasActiveField: boolean = false): ComparisonRow[] => {
+    (
+      sectionName: string,
+      field: string,
+      hasActiveField = false
+    ): ComparisonRow[] => {
       if (!profileData) return [];
 
       const profileIds = Object.keys(profileData);
       const allItems = new Set<string>();
 
       for (const pid of profileIds) {
-        const sectionData = profileData[pid][sectionName as keyof typeof profileData[string]] as Record<string, unknown[]>;
+        const sectionData = profileData[pid][
+          sectionName as keyof (typeof profileData)[string]
+        ] as Record<string, unknown[]>;
         const items = sectionData?.[field] || [];
         if (Array.isArray(items)) {
           items.forEach((item) => {
@@ -261,7 +294,9 @@ export function DiffProfiles() {
         const states: (boolean | null)[] = [];
 
         for (const pid of profileIds) {
-          const sectionData = profileData[pid][sectionName as keyof typeof profileData[string]] as Record<string, unknown[]>;
+          const sectionData = profileData[pid][
+            sectionName as keyof (typeof profileData)[string]
+          ] as Record<string, unknown[]>;
           const items = sectionData?.[field] || [];
           const itemMap: Record<string, Record<string, unknown>> = {};
 
@@ -271,14 +306,15 @@ export function DiffProfiles() {
                 const obj = item as Record<string, unknown>;
                 itemMap[String(obj.id || item)] = obj;
               } else {
-                itemMap[String(item)] = { id: String(item) };
+                itemMap[String(item)] = {id: String(item)};
               }
             });
           }
 
           if (itemMap[itemId]) {
             if (hasActiveField) {
-              const isActive = (itemMap[itemId] as Record<string, boolean>).active;
+              const isActive = (itemMap[itemId] as Record<string, boolean>)
+                .active;
               values.push(isActive ? '✓' : '✗');
               states.push(isActive);
             } else {
@@ -292,7 +328,7 @@ export function DiffProfiles() {
         }
 
         const hasDiff = !states.every((s) => s === states[0]);
-        rows.push({ label: itemId, values, hasDiff });
+        rows.push({label: itemId, values, hasDiff});
       }
 
       return rows;
@@ -300,7 +336,11 @@ export function DiffProfiles() {
     [profileData]
   );
 
-  const renderTable = (title: string, rows: ComparisonRow[], legend?: string) => {
+  const renderTable = (
+    title: string,
+    rows: ComparisonRow[],
+    legend?: string
+  ) => {
     if (!profileData) return null;
 
     const displayRows = diffOnly ? rows.filter((r) => r.hasDiff) : rows;
@@ -332,13 +372,20 @@ export function DiffProfiles() {
             </thead>
             <tbody>
               {displayRows.map((row) => (
-                <tr key={row.label} className={row.hasDiff ? styles.diffRow : ''}>
+                <tr
+                  key={row.label}
+                  className={row.hasDiff ? styles.diffRow : ''}
+                >
                   <td className={styles.labelCell}>{row.label}</td>
                   {row.values.map((val, i) => (
                     <td key={i} className={styles.valueCell}>
                       <span
                         className={`${styles.value} ${
-                          val === '✓' ? styles.enabled : val === '✗' ? styles.disabled : ''
+                          val === '✓'
+                            ? styles.enabled
+                            : val === '✗'
+                              ? styles.disabled
+                              : ''
                         }`}
                       >
                         {val}
@@ -382,7 +429,10 @@ export function DiffProfiles() {
           <>
             {renderTable(
               'Privacy Settings',
-              compareSettings('privacy', ['disguisedTrackers', 'allowAffiliate'])
+              compareSettings('privacy', [
+                'disguisedTrackers',
+                'allowAffiliate',
+              ])
             )}
             {renderTable(
               'Blocklists',
@@ -423,7 +473,12 @@ export function DiffProfiles() {
         {(section === 'all' || section === 'settings') &&
           renderTable(
             'General Settings',
-            compareNestedSettings('settings', ['logs', 'blockPage', 'performance', 'web3'])
+            compareNestedSettings('settings', [
+              'logs',
+              'blockPage',
+              'performance',
+              'web3',
+            ])
           )}
 
         {(section === 'all' || section === 'lists') && (

@@ -25,7 +25,7 @@ export interface HttpAdapter {
       headers?: Record<string, string>;
       body?: string;
     }
-  ): Promise<{ status: number; data: T }>;
+  ): Promise<{status: number; data: T}>;
 }
 
 /**
@@ -37,30 +37,32 @@ export function parseApiResponse<T>(
   responseOk: boolean,
   status: number,
   text: string
-): { status: number; data: T } {
+): {status: number; data: T} {
   if (status === 204) {
-    return { status: 204, data: {} as T };
+    return {status: 204, data: {} as T};
   }
 
   const data = text ? JSON.parse(text) : {};
 
   // Check for errors - NextDNS API may return 200 with errors in body
-  const errorData = data as { errors?: { message?: string; code?: string }[] };
+  const errorData = data as {errors?: {message?: string; code?: string}[]};
   if (!responseOk || (errorData.errors && errorData.errors.length > 0)) {
     const errorMessage =
-      errorData.errors?.[0]?.message || errorData.errors?.[0]?.code || 'Request failed';
+      errorData.errors?.[0]?.message ||
+      errorData.errors?.[0]?.code ||
+      'Request failed';
     throw new Error(errorMessage);
   }
 
-  return { status, data };
+  return {status, data};
 }
 
 // Default HTTP adapter using fetch (works in Node 18+ and browsers)
 const defaultHttpAdapter: HttpAdapter = {
   async request<T>(
     url: string,
-    options: { method?: string; headers?: Record<string, string>; body?: string }
-  ): Promise<{ status: number; data: T }> {
+    options: {method?: string; headers?: Record<string, string>; body?: string}
+  ): Promise<{status: number; data: T}> {
     const response = await fetch(url, {
       method: options.method || 'GET',
       headers: options.headers,
@@ -93,7 +95,7 @@ export class NextDNSApi {
 
   private async request<T>(
     endpoint: string,
-    options: { method?: string; body?: unknown } = {},
+    options: {method?: string; body?: unknown} = {},
     customApiKey?: string
   ): Promise<T> {
     const key = customApiKey || this.apiKey;
@@ -116,7 +118,11 @@ export class NextDNSApi {
 
   // Profile operations
   async getProfiles(apiKey?: string): Promise<Profile[]> {
-    const response = await this.request<ApiResponse<Profile[]>>('/profiles', {}, apiKey);
+    const response = await this.request<ApiResponse<Profile[]>>(
+      '/profiles',
+      {},
+      apiKey
+    );
     return response.data || [];
   }
 
@@ -129,10 +135,13 @@ export class NextDNSApi {
     return response.data as ProfileData;
   }
 
-  async createProfile(payload: Partial<ProfileData>, apiKey?: string): Promise<ProfileData> {
+  async createProfile(
+    payload: Partial<ProfileData>,
+    apiKey?: string
+  ): Promise<ProfileData> {
     const response = await this.request<ApiResponse<ProfileData>>(
       '/profiles',
-      { method: 'POST', body: payload },
+      {method: 'POST', body: payload},
       apiKey
     );
     return response.data as ProfileData;
@@ -156,12 +165,12 @@ export class NextDNSApi {
     profileId: string,
     domain: string,
     listType: ListType,
-    active: boolean = true,
+    active = true,
     apiKey?: string
   ): Promise<void> {
     await this.request(
       `/profiles/${profileId}/${listType}`,
-      { method: 'POST', body: { id: domain, active } },
+      {method: 'POST', body: {id: domain, active}},
       apiKey
     );
   }
@@ -175,7 +184,7 @@ export class NextDNSApi {
   ): Promise<void> {
     await this.request(
       `/profiles/${profileId}/${listType}/${encodeURIComponent(domain)}`,
-      { method: 'PATCH', body: { active } },
+      {method: 'PATCH', body: {active}},
       apiKey
     );
   }
@@ -188,13 +197,16 @@ export class NextDNSApi {
   ): Promise<void> {
     await this.request(
       `/profiles/${profileId}/${listType}/${encodeURIComponent(domain)}`,
-      { method: 'DELETE' },
+      {method: 'DELETE'},
       apiKey
     );
   }
 
   // Rewrites operations
-  async getRewrites(profileId: string, apiKey?: string): Promise<RewriteEntry[]> {
+  async getRewrites(
+    profileId: string,
+    apiKey?: string
+  ): Promise<RewriteEntry[]> {
     const response = await this.request<ApiResponse<RewriteEntry[]>>(
       `/profiles/${profileId}/rewrites`,
       {},
@@ -205,24 +217,24 @@ export class NextDNSApi {
 
   async addRewrite(
     profileId: string,
-    rewrite: { name: string; content: string },
+    rewrite: {name: string; content: string},
     apiKey?: string
   ): Promise<void> {
     await this.request(
       `/profiles/${profileId}/rewrites`,
-      { method: 'POST', body: rewrite },
+      {method: 'POST', body: rewrite},
       apiKey
     );
   }
 
   async putRewrites(
     profileId: string,
-    rewrites: { name: string; content: string }[],
+    rewrites: {name: string; content: string}[],
     apiKey?: string
   ): Promise<void> {
     await this.request(
       `/profiles/${profileId}/rewrites`,
-      { method: 'PUT', body: rewrites },
+      {method: 'PUT', body: rewrites},
       apiKey
     );
   }

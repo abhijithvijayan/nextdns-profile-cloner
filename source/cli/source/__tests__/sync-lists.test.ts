@@ -3,8 +3,8 @@
  * Port of test_sync_lists.py
  */
 
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { NextDNSApi, type HttpAdapter } from '../../../core/api';
+import {jest, describe, test, expect, beforeEach} from '@jest/globals';
+import {NextDNSApi, type HttpAdapter} from '../../../core/api';
 import {
   analyzeSync,
   executeSync,
@@ -13,23 +13,23 @@ import {
   type ProfileListData,
   type SyncAnalysis,
 } from '../../../core/sync-lists';
-import type { Profile, ListType } from '../../../core/types';
+import type {Profile, ListType} from '../../../core/types';
 
 // Sample data matching Python tests
 const SAMPLE_PROFILES: Profile[] = [
-  { id: 'abc123', name: 'Profile 1' },
-  { id: 'def456', name: 'Profile 2' },
-  { id: 'ghi789', name: 'Profile 3' },
+  {id: 'abc123', name: 'Profile 1'},
+  {id: 'def456', name: 'Profile 2'},
+  {id: 'ghi789', name: 'Profile 3'},
 ];
 
 const SAMPLE_PROFILE_DATA = {
   id: 'abc123',
   name: 'Profile 1',
   denylist: [
-    { id: 'malware.com', active: true },
-    { id: 'ads.com', active: false },
+    {id: 'malware.com', active: true},
+    {id: 'ads.com', active: false},
   ],
-  allowlist: [{ id: 'trusted.com', active: true }],
+  allowlist: [{id: 'trusted.com', active: true}],
 };
 
 // Mock HTTP adapter interface
@@ -37,23 +37,30 @@ interface MockHttpAdapter extends HttpAdapter {
   mockRequest: ReturnType<typeof jest.fn>;
   setResponse: (response: unknown) => void;
   setError: (error: Error) => void;
-  setSideEffect: (fn: (url: string, options: Record<string, unknown>) => unknown) => void;
+  setSideEffect: (
+    fn: (url: string, options: Record<string, unknown>) => unknown
+  ) => void;
 }
 
 // Mock HTTP adapter for testing
 function createMockHttpAdapter(): MockHttpAdapter {
-  let mockResponse: unknown = { data: [] };
+  let mockResponse: unknown = {data: []};
   let mockError: Error | null = null;
-  let sideEffect: ((url: string, options: Record<string, unknown>) => unknown) | null = null;
+  let sideEffect:
+    | ((url: string, options: Record<string, unknown>) => unknown)
+    | null = null;
 
   const mockRequest = jest.fn(async (url: string, options: unknown) => {
     if (mockError) {
       throw mockError;
     }
     if (sideEffect) {
-      return sideEffect(url, options as Record<string, unknown>) as { status: number; data: unknown };
+      return sideEffect(url, options as Record<string, unknown>) as {
+        status: number;
+        data: unknown;
+      };
     }
-    return { status: 200, data: mockResponse };
+    return {status: 200, data: mockResponse};
   });
 
   return {
@@ -68,7 +75,9 @@ function createMockHttpAdapter(): MockHttpAdapter {
       mockError = error;
       sideEffect = null;
     },
-    setSideEffect: (fn: (url: string, options: Record<string, unknown>) => unknown) => {
+    setSideEffect: (
+      fn: (url: string, options: Record<string, unknown>) => unknown
+    ) => {
       sideEffect = fn;
       mockError = null;
     },
@@ -78,9 +87,9 @@ function createMockHttpAdapter(): MockHttpAdapter {
 describe('getCanonicalDomains', () => {
   test('majority enabled wins', () => {
     const allData: Record<string, ProfileListData> = {
-      p1: { name: 'P1', denylist: { 'domain.com': true }, allowlist: {} },
-      p2: { name: 'P2', denylist: { 'domain.com': true }, allowlist: {} },
-      p3: { name: 'P3', denylist: { 'domain.com': false }, allowlist: {} },
+      p1: {name: 'P1', denylist: {'domain.com': true}, allowlist: {}},
+      p2: {name: 'P2', denylist: {'domain.com': true}, allowlist: {}},
+      p3: {name: 'P3', denylist: {'domain.com': false}, allowlist: {}},
     };
 
     const result = getCanonicalDomains(allData, 'denylist');
@@ -90,9 +99,9 @@ describe('getCanonicalDomains', () => {
 
   test('majority disabled wins', () => {
     const allData: Record<string, ProfileListData> = {
-      p1: { name: 'P1', denylist: { 'domain.com': false }, allowlist: {} },
-      p2: { name: 'P2', denylist: { 'domain.com': false }, allowlist: {} },
-      p3: { name: 'P3', denylist: { 'domain.com': true }, allowlist: {} },
+      p1: {name: 'P1', denylist: {'domain.com': false}, allowlist: {}},
+      p2: {name: 'P2', denylist: {'domain.com': false}, allowlist: {}},
+      p3: {name: 'P3', denylist: {'domain.com': true}, allowlist: {}},
     };
 
     const result = getCanonicalDomains(allData, 'denylist');
@@ -102,8 +111,8 @@ describe('getCanonicalDomains', () => {
 
   test('tie goes to enabled', () => {
     const allData: Record<string, ProfileListData> = {
-      p1: { name: 'P1', denylist: { 'domain.com': true }, allowlist: {} },
-      p2: { name: 'P2', denylist: { 'domain.com': false }, allowlist: {} },
+      p1: {name: 'P1', denylist: {'domain.com': true}, allowlist: {}},
+      p2: {name: 'P2', denylist: {'domain.com': false}, allowlist: {}},
     };
 
     const result = getCanonicalDomains(allData, 'denylist');
@@ -113,9 +122,21 @@ describe('getCanonicalDomains', () => {
 
   test('multiple domains', () => {
     const allData: Record<string, ProfileListData> = {
-      p1: { name: 'P1', denylist: { 'a.com': true, 'b.com': false }, allowlist: {} },
-      p2: { name: 'P2', denylist: { 'a.com': true, 'b.com': false }, allowlist: {} },
-      p3: { name: 'P3', denylist: { 'a.com': false, 'c.com': true }, allowlist: {} },
+      p1: {
+        name: 'P1',
+        denylist: {'a.com': true, 'b.com': false},
+        allowlist: {},
+      },
+      p2: {
+        name: 'P2',
+        denylist: {'a.com': true, 'b.com': false},
+        allowlist: {},
+      },
+      p3: {
+        name: 'P3',
+        denylist: {'a.com': false, 'c.com': true},
+        allowlist: {},
+      },
     };
 
     const result = getCanonicalDomains(allData, 'denylist');
@@ -135,9 +156,9 @@ describe('getCanonicalDomains', () => {
 
   test('allowlist', () => {
     const allData: Record<string, ProfileListData> = {
-      p1: { name: 'P1', denylist: {}, allowlist: { 'safe.com': true } },
-      p2: { name: 'P2', denylist: {}, allowlist: { 'safe.com': true } },
-      p3: { name: 'P3', denylist: {}, allowlist: { 'safe.com': false } },
+      p1: {name: 'P1', denylist: {}, allowlist: {'safe.com': true}},
+      p2: {name: 'P2', denylist: {}, allowlist: {'safe.com': true}},
+      p3: {name: 'P3', denylist: {}, allowlist: {'safe.com': false}},
     };
 
     const result = getCanonicalDomains(allData, 'allowlist');
@@ -153,7 +174,7 @@ describe('analyzeSync', () => {
       abc123: {
         id: 'abc123',
         name: 'Profile 1',
-        denylist: [{ id: 'a.com', active: true }],
+        denylist: [{id: 'a.com', active: true}],
         allowlist: [],
       },
       def456: {
@@ -170,23 +191,23 @@ describe('analyzeSync', () => {
           status: 200,
           data: {
             data: [
-              { id: 'abc123', name: 'Profile 1' },
-              { id: 'def456', name: 'Profile 2' },
+              {id: 'abc123', name: 'Profile 1'},
+              {id: 'def456', name: 'Profile 2'},
             ],
           },
         };
       }
       if (url.includes('/profiles/abc123')) {
-        return { status: 200, data: { data: profilesData['abc123'] } };
+        return {status: 200, data: {data: profilesData['abc123']}};
       }
       if (url.includes('/profiles/def456')) {
-        return { status: 200, data: { data: profilesData['def456'] } };
+        return {status: 200, data: {data: profilesData['def456']}};
       }
-      return { status: 200, data: {} };
+      return {status: 200, data: {}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 
-    const { analysis } = await analyzeSync(api, { apiKey: 'test-key' });
+    const {analysis} = await analyzeSync(api, {apiKey: 'test-key'});
 
     expect(analysis.denylist.canonical['a.com']).toBe(true);
     expect(analysis.denylist.toAdd).toHaveLength(1);
@@ -202,7 +223,7 @@ describe('executeSync', () => {
 
     const analysis: SyncAnalysis = {
       denylist: {
-        canonical: { 'a.com': true },
+        canonical: {'a.com': true},
         toAdd: [
           {
             type: 'add',
@@ -215,7 +236,7 @@ describe('executeSync', () => {
         ],
         toUpdate: [],
       },
-      allowlist: { canonical: {}, toAdd: [], toUpdate: [] },
+      allowlist: {canonical: {}, toAdd: [], toUpdate: []},
       totalUniqueInDenylist: 1,
       totalUniqueInAllowlist: 0,
       estimatedTimeMinutes: 0.5,
@@ -223,7 +244,7 @@ describe('executeSync', () => {
 
     const result = await executeSync(
       api,
-      { apiKey: 'test-key', listType: 'both', dryRun: true },
+      {apiKey: 'test-key', listType: 'both', dryRun: true},
       analysis
     );
 
@@ -241,7 +262,7 @@ describe('executeSync', () => {
 
     const analysis: SyncAnalysis = {
       denylist: {
-        canonical: { 'a.com': true },
+        canonical: {'a.com': true},
         toAdd: [
           {
             type: 'add',
@@ -254,7 +275,7 @@ describe('executeSync', () => {
         ],
         toUpdate: [],
       },
-      allowlist: { canonical: {}, toAdd: [], toUpdate: [] },
+      allowlist: {canonical: {}, toAdd: [], toUpdate: []},
       totalUniqueInDenylist: 1,
       totalUniqueInAllowlist: 0,
       estimatedTimeMinutes: 0.5,
@@ -262,7 +283,7 @@ describe('executeSync', () => {
 
     const result = await executeSync(
       api,
-      { apiKey: 'test-key', listType: 'denylist', dryRun: false },
+      {apiKey: 'test-key', listType: 'denylist', dryRun: false},
       analysis
     );
 
@@ -278,7 +299,7 @@ describe('executeSync', () => {
 
     const analysis: SyncAnalysis = {
       denylist: {
-        canonical: { 'a.com': true },
+        canonical: {'a.com': true},
         toAdd: [],
         toUpdate: [
           {
@@ -291,7 +312,7 @@ describe('executeSync', () => {
           },
         ],
       },
-      allowlist: { canonical: {}, toAdd: [], toUpdate: [] },
+      allowlist: {canonical: {}, toAdd: [], toUpdate: []},
       totalUniqueInDenylist: 1,
       totalUniqueInAllowlist: 0,
       estimatedTimeMinutes: 0.5,
@@ -299,7 +320,7 @@ describe('executeSync', () => {
 
     const result = await executeSync(
       api,
-      { apiKey: 'test-key', listType: 'denylist', dryRun: false },
+      {apiKey: 'test-key', listType: 'denylist', dryRun: false},
       analysis
     );
 
@@ -314,7 +335,7 @@ describe('executeSync', () => {
 
     const analysis: SyncAnalysis = {
       denylist: {
-        canonical: { 'a.com': true },
+        canonical: {'a.com': true},
         toAdd: [
           {
             type: 'add',
@@ -327,7 +348,7 @@ describe('executeSync', () => {
         ],
         toUpdate: [],
       },
-      allowlist: { canonical: {}, toAdd: [], toUpdate: [] },
+      allowlist: {canonical: {}, toAdd: [], toUpdate: []},
       totalUniqueInDenylist: 1,
       totalUniqueInAllowlist: 0,
       estimatedTimeMinutes: 0.5,
@@ -335,7 +356,7 @@ describe('executeSync', () => {
 
     const result = await executeSync(
       api,
-      { apiKey: 'test-key', listType: 'denylist', dryRun: false },
+      {apiKey: 'test-key', listType: 'denylist', dryRun: false},
       analysis
     );
 
@@ -348,8 +369,8 @@ describe('executeSync', () => {
     const api = new NextDNSApi({}, mockAdapter);
 
     const analysis: SyncAnalysis = {
-      denylist: { canonical: { 'a.com': true }, toAdd: [], toUpdate: [] },
-      allowlist: { canonical: {}, toAdd: [], toUpdate: [] },
+      denylist: {canonical: {'a.com': true}, toAdd: [], toUpdate: []},
+      allowlist: {canonical: {}, toAdd: [], toUpdate: []},
       totalUniqueInDenylist: 1,
       totalUniqueInAllowlist: 0,
       estimatedTimeMinutes: 0,
@@ -357,7 +378,7 @@ describe('executeSync', () => {
 
     const result = await executeSync(
       api,
-      { apiKey: 'test-key', listType: 'denylist', dryRun: false },
+      {apiKey: 'test-key', listType: 'denylist', dryRun: false},
       analysis
     );
 
@@ -377,52 +398,52 @@ describe('syncLists integration', () => {
         id: 'p1',
         name: 'Profile 1',
         denylist: [
-          { id: 'a.com', active: true },
-          { id: 'b.com', active: true },
+          {id: 'a.com', active: true},
+          {id: 'b.com', active: true},
         ],
         allowlist: [],
       },
       p2: {
         id: 'p2',
         name: 'Profile 2',
-        denylist: [{ id: 'a.com', active: false }],
+        denylist: [{id: 'a.com', active: false}],
         allowlist: [],
       },
       p3: {
         id: 'p3',
         name: 'Profile 3',
         denylist: [
-          { id: 'b.com', active: false },
-          { id: 'c.com', active: true },
+          {id: 'b.com', active: false},
+          {id: 'c.com', active: true},
         ],
         allowlist: [],
       },
     };
 
-    mockAdapter.setSideEffect((url, options: { method?: string }) => {
+    mockAdapter.setSideEffect((url, options: {method?: string}) => {
       if (url.endsWith('/profiles')) {
         return {
           status: 200,
           data: {
             data: [
-              { id: 'p1', name: 'Profile 1' },
-              { id: 'p2', name: 'Profile 2' },
-              { id: 'p3', name: 'Profile 3' },
+              {id: 'p1', name: 'Profile 1'},
+              {id: 'p2', name: 'Profile 2'},
+              {id: 'p3', name: 'Profile 3'},
             ],
           },
         };
       }
       if (url.includes('/profiles/p1') && !url.includes('/denylist')) {
-        return { status: 200, data: { data: profilesData['p1'] } };
+        return {status: 200, data: {data: profilesData['p1']}};
       }
       if (url.includes('/profiles/p2') && !url.includes('/denylist')) {
-        return { status: 200, data: { data: profilesData['p2'] } };
+        return {status: 200, data: {data: profilesData['p2']}};
       }
       if (url.includes('/profiles/p3') && !url.includes('/denylist')) {
-        return { status: 200, data: { data: profilesData['p3'] } };
+        return {status: 200, data: {data: profilesData['p3']}};
       }
       // Handle sync operations (POST and PATCH)
-      return { status: 200, data: {} };
+      return {status: 200, data: {}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 

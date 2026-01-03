@@ -3,14 +3,14 @@
  * Port of test_copy_profile.py
  */
 
-import { jest, describe, test, expect } from '@jest/globals';
-import { NextDNSApi, type HttpAdapter } from '../../../core/api';
+import {jest, describe, test, expect} from '@jest/globals';
+import {NextDNSApi, type HttpAdapter} from '../../../core/api';
 import {
   validateApiSchema,
   reconstructPayload,
   copyProfile,
 } from '../../../core/copy-profile';
-import type { ProfileData } from '../../../core/types';
+import type {ProfileData} from '../../../core/types';
 
 // Sample profile data (placeholder values matching Python tests)
 const SAMPLE_PROFILE_DATA: ProfileData = {
@@ -38,33 +38,30 @@ const SAMPLE_PROFILE_DATA: ProfileData = {
     ddns: true,
     parking: true,
     csam: true,
-    tlds: [{ id: 'example1' }, { id: 'example2' }, { id: 'example3' }],
+    tlds: [{id: 'example1'}, {id: 'example2'}, {id: 'example3'}],
   },
   privacy: {
     disguisedTrackers: true,
     allowAffiliate: true,
-    blocklists: [
-      { id: 'nextdns-recommended' },
-      { id: 'steven-black' },
-    ],
-    natives: [{ id: 'windows' }, { id: 'apple' }, { id: 'samsung' }],
+    blocklists: [{id: 'nextdns-recommended'}, {id: 'steven-black'}],
+    natives: [{id: 'windows'}, {id: 'apple'}, {id: 'samsung'}],
   },
   parentalControl: {
     safeSearch: true,
     youtubeRestrictedMode: true,
     blockBypass: true,
     services: [
-      { id: 'tiktok', active: true },
-      { id: 'snapchat', active: true },
+      {id: 'tiktok', active: true},
+      {id: 'snapchat', active: true},
     ],
     categories: [
-      { id: 'gambling', active: true },
-      { id: 'dating', active: true },
+      {id: 'gambling', active: true},
+      {id: 'dating', active: true},
     ],
     recreation: {
       times: {
-        monday: { start: '18:00:00', end: '20:30:00' },
-        saturday: { start: '09:00:00', end: '20:30:00' },
+        monday: {start: '18:00:00', end: '20:30:00'},
+        saturday: {start: '09:00:00', end: '20:30:00'},
       },
       timezone: 'UTC',
     },
@@ -72,22 +69,22 @@ const SAMPLE_PROFILE_DATA: ProfileData = {
   settings: {
     logs: {
       enabled: true,
-      drop: { ip: false, domain: false },
+      drop: {ip: false, domain: false},
       retention: 86400,
       location: 'us',
     },
-    blockPage: { enabled: true },
-    performance: { ecs: true, cacheBoost: true, cnameFlattening: true },
+    blockPage: {enabled: true},
+    performance: {ecs: true, cacheBoost: true, cnameFlattening: true},
     bav: true,
     web3: true,
   },
   denylist: [
-    { id: 'malware-example.com', active: true },
-    { id: 'tracker-example.net', active: false },
+    {id: 'malware-example.com', active: true},
+    {id: 'tracker-example.net', active: false},
   ],
   allowlist: [
-    { id: 'trusted-example.com', active: true },
-    { id: 'safe-example.org', active: true },
+    {id: 'trusted-example.com', active: true},
+    {id: 'safe-example.org', active: true},
   ],
 };
 
@@ -96,23 +93,30 @@ interface MockHttpAdapter extends HttpAdapter {
   mockRequest: ReturnType<typeof jest.fn>;
   setResponse: (response: unknown) => void;
   setError: (error: Error) => void;
-  setSideEffect: (fn: (url: string, options: Record<string, unknown>) => unknown) => void;
+  setSideEffect: (
+    fn: (url: string, options: Record<string, unknown>) => unknown
+  ) => void;
 }
 
 // Mock HTTP adapter
 function createMockHttpAdapter(): MockHttpAdapter {
-  let mockResponse: unknown = { data: [] };
+  let mockResponse: unknown = {data: []};
   let mockError: Error | null = null;
-  let sideEffect: ((url: string, options: Record<string, unknown>) => unknown) | null = null;
+  let sideEffect:
+    | ((url: string, options: Record<string, unknown>) => unknown)
+    | null = null;
 
   const mockRequest = jest.fn(async (url: string, options: unknown) => {
     if (mockError) {
       throw mockError;
     }
     if (sideEffect) {
-      return sideEffect(url, options as Record<string, unknown>) as { status: number; data: unknown };
+      return sideEffect(url, options as Record<string, unknown>) as {
+        status: number;
+        data: unknown;
+      };
     }
-    return { status: 200, data: mockResponse };
+    return {status: 200, data: mockResponse};
   });
 
   return {
@@ -127,7 +131,9 @@ function createMockHttpAdapter(): MockHttpAdapter {
       mockError = error;
       sideEffect = null;
     },
-    setSideEffect: (fn: (url: string, options: Record<string, unknown>) => unknown) => {
+    setSideEffect: (
+      fn: (url: string, options: Record<string, unknown>) => unknown
+    ) => {
       sideEffect = fn;
       mockError = null;
     },
@@ -142,7 +148,7 @@ describe('reconstructPayload', () => {
     });
 
     test('defaults name when missing with (Copy) suffix', () => {
-      const data = { security: {} } as ProfileData;
+      const data = {security: {}} as ProfileData;
       const payload = reconstructPayload(data);
       expect(payload.name).toBe('Cloned Profile (Copy)');
     });
@@ -172,13 +178,13 @@ describe('reconstructPayload', () => {
       const tlds = payload.security!.tlds!;
 
       expect(tlds).toHaveLength(3);
-      expect(tlds).toContainEqual({ id: 'example1' });
-      expect(tlds).toContainEqual({ id: 'example2' });
-      expect(tlds).toContainEqual({ id: 'example3' });
+      expect(tlds).toContainEqual({id: 'example1'});
+      expect(tlds).toContainEqual({id: 'example2'});
+      expect(tlds).toContainEqual({id: 'example3'});
     });
 
     test('defaults to true when fields are missing', () => {
-      const data = { security: { threatIntelligenceFeeds: false } } as ProfileData;
+      const data = {security: {threatIntelligenceFeeds: false}} as ProfileData;
       const payload = reconstructPayload(data);
 
       expect(payload.security!.threatIntelligenceFeeds).toBe(false);
@@ -200,8 +206,8 @@ describe('reconstructPayload', () => {
       const blocklists = payload.privacy!.blocklists!;
 
       expect(blocklists).toHaveLength(2);
-      expect(blocklists[0]).toEqual({ id: 'nextdns-recommended' });
-      expect(blocklists[1]).toEqual({ id: 'steven-black' });
+      expect(blocklists[0]).toEqual({id: 'nextdns-recommended'});
+      expect(blocklists[1]).toEqual({id: 'steven-black'});
     });
 
     test('copies natives with only id field', () => {
@@ -209,8 +215,8 @@ describe('reconstructPayload', () => {
       const natives = payload.privacy!.natives!;
 
       expect(natives).toHaveLength(3);
-      expect(natives).toContainEqual({ id: 'windows' });
-      expect(natives).toContainEqual({ id: 'apple' });
+      expect(natives).toContainEqual({id: 'windows'});
+      expect(natives).toContainEqual({id: 'apple'});
     });
   });
 
@@ -229,8 +235,8 @@ describe('reconstructPayload', () => {
       const services = payload.parentalControl!.services!;
 
       expect(services).toHaveLength(2);
-      expect(services).toContainEqual({ id: 'tiktok', active: true });
-      expect(services).toContainEqual({ id: 'snapchat', active: true });
+      expect(services).toContainEqual({id: 'tiktok', active: true});
+      expect(services).toContainEqual({id: 'snapchat', active: true});
     });
 
     test('copies categories with id and active status', () => {
@@ -238,8 +244,8 @@ describe('reconstructPayload', () => {
       const categories = payload.parentalControl!.categories!;
 
       expect(categories).toHaveLength(2);
-      expect(categories).toContainEqual({ id: 'gambling', active: true });
-      expect(categories).toContainEqual({ id: 'dating', active: true });
+      expect(categories).toContainEqual({id: 'gambling', active: true});
+      expect(categories).toContainEqual({id: 'dating', active: true});
     });
 
     test('does NOT copy recreation field (not supported by API)', () => {
@@ -248,7 +254,7 @@ describe('reconstructPayload', () => {
     });
 
     test('defaults to false when fields are missing', () => {
-      const data = { parentalControl: {} } as ProfileData;
+      const data = {parentalControl: {}} as ProfileData;
       const payload = reconstructPayload(data);
 
       expect(payload.parentalControl!.safeSearch).toBe(false);
@@ -263,12 +269,18 @@ describe('reconstructPayload', () => {
       const denylist = payload.denylist!;
 
       expect(denylist).toHaveLength(2);
-      expect(denylist).toContainEqual({ id: 'malware-example.com', active: true });
-      expect(denylist).toContainEqual({ id: 'tracker-example.net', active: false });
+      expect(denylist).toContainEqual({
+        id: 'malware-example.com',
+        active: true,
+      });
+      expect(denylist).toContainEqual({
+        id: 'tracker-example.net',
+        active: false,
+      });
     });
 
     test('defaults active to true when missing', () => {
-      const data = { denylist: [{ id: 'test.com' }] } as unknown as ProfileData;
+      const data = {denylist: [{id: 'test.com'}]} as unknown as ProfileData;
       const payload = reconstructPayload(data);
 
       expect(payload.denylist![0].active).toBe(true);
@@ -279,7 +291,10 @@ describe('reconstructPayload', () => {
       const allowlist = payload.allowlist!;
 
       expect(allowlist).toHaveLength(2);
-      expect(allowlist).toContainEqual({ id: 'trusted-example.com', active: true });
+      expect(allowlist).toContainEqual({
+        id: 'trusted-example.com',
+        active: true,
+      });
     });
   });
 
@@ -327,7 +342,9 @@ describe('reconstructPayload', () => {
 
     test('does not copy fingerprint', () => {
       const payload = reconstructPayload(SAMPLE_PROFILE_DATA);
-      expect((payload as Record<string, unknown>)['fingerprint']).toBeUndefined();
+      expect(
+        (payload as Record<string, unknown>)['fingerprint']
+      ).toBeUndefined();
     });
 
     test('does not copy id', () => {
@@ -345,27 +362,34 @@ describe('reconstructPayload', () => {
     });
 
     test('handles empty TLDs array', () => {
-      const data = { security: { tlds: [] } } as unknown as ProfileData;
+      const data = {security: {tlds: []}} as unknown as ProfileData;
       const payload = reconstructPayload(data);
       expect(payload.security!.tlds).toEqual([]);
     });
 
     test('handles empty blocklists', () => {
-      const data = { privacy: { blocklists: [], natives: [] } } as unknown as ProfileData;
+      const data = {
+        privacy: {blocklists: [], natives: []},
+      } as unknown as ProfileData;
       const payload = reconstructPayload(data);
       expect(payload.privacy!.blocklists).toEqual([]);
       expect(payload.privacy!.natives).toEqual([]);
     });
 
     test('handles empty deny/allow lists', () => {
-      const data = { id: 'test', name: 'Test', denylist: [], allowlist: [] } as ProfileData;
+      const data = {
+        id: 'test',
+        name: 'Test',
+        denylist: [],
+        allowlist: [],
+      } as ProfileData;
       const payload = reconstructPayload(data);
       expect(payload.denylist).toEqual([]);
       expect(payload.allowlist).toEqual([]);
     });
 
     test('handles missing optional sections', () => {
-      const data = { name: 'Minimal Profile' } as ProfileData;
+      const data = {name: 'Minimal Profile'} as ProfileData;
       const payload = reconstructPayload(data);
 
       expect(payload.name).toBe('Minimal Profile (Copy)');
@@ -378,23 +402,29 @@ describe('reconstructPayload', () => {
     });
 
     test('handles partial settings', () => {
-      const data = { settings: { logs: { enabled: true } } } as unknown as ProfileData;
+      const data = {
+        settings: {logs: {enabled: true}},
+      } as unknown as ProfileData;
       const payload = reconstructPayload(data);
 
-      expect(payload.settings!.logs).toEqual({ enabled: true });
+      expect(payload.settings!.logs).toEqual({enabled: true});
       expect(payload.settings!.blockPage).toBeUndefined();
       expect(payload.settings!.performance).toBeUndefined();
     });
 
     test('service without active defaults to false', () => {
-      const data = { parentalControl: { services: [{ id: 'tiktok' }] } } as unknown as ProfileData;
+      const data = {
+        parentalControl: {services: [{id: 'tiktok'}]},
+      } as unknown as ProfileData;
       const payload = reconstructPayload(data);
 
       expect(payload.parentalControl!.services![0].active).toBe(false);
     });
 
     test('category without active defaults to false', () => {
-      const data = { parentalControl: { categories: [{ id: 'gambling' }] } } as unknown as ProfileData;
+      const data = {
+        parentalControl: {categories: [{id: 'gambling'}]},
+      } as unknown as ProfileData;
       const payload = reconstructPayload(data);
 
       expect(payload.parentalControl!.categories![0].active).toBe(false);
@@ -445,7 +475,9 @@ describe('reconstructPayload', () => {
       const payload = reconstructPayload(SAMPLE_PROFILE_DATA);
 
       expect((payload as Record<string, unknown>)['setup']).toBeUndefined();
-      expect((payload as Record<string, unknown>)['fingerprint']).toBeUndefined();
+      expect(
+        (payload as Record<string, unknown>)['fingerprint']
+      ).toBeUndefined();
       expect((payload as Record<string, unknown>)['id']).toBeUndefined();
     });
 
@@ -453,10 +485,18 @@ describe('reconstructPayload', () => {
       const payload = reconstructPayload(SAMPLE_PROFILE_DATA);
 
       expect(payload.name).toBe(`${SAMPLE_PROFILE_DATA.name} (Copy)`);
-      expect(payload.security!.tlds).toHaveLength(SAMPLE_PROFILE_DATA.security!.tlds!.length);
-      expect(payload.privacy!.blocklists).toHaveLength(SAMPLE_PROFILE_DATA.privacy!.blocklists!.length);
-      expect(payload.denylist).toHaveLength(SAMPLE_PROFILE_DATA.denylist!.length);
-      expect(payload.allowlist).toHaveLength(SAMPLE_PROFILE_DATA.allowlist!.length);
+      expect(payload.security!.tlds).toHaveLength(
+        SAMPLE_PROFILE_DATA.security!.tlds!.length
+      );
+      expect(payload.privacy!.blocklists).toHaveLength(
+        SAMPLE_PROFILE_DATA.privacy!.blocklists!.length
+      );
+      expect(payload.denylist).toHaveLength(
+        SAMPLE_PROFILE_DATA.denylist!.length
+      );
+      expect(payload.allowlist).toHaveLength(
+        SAMPLE_PROFILE_DATA.allowlist!.length
+      );
     });
   });
 });
@@ -468,7 +508,10 @@ describe('validateApiSchema', () => {
   });
 
   test('warns on unknown root field', () => {
-    const data = { ...SAMPLE_PROFILE_DATA, newFeature: { enabled: true } } as unknown as ProfileData;
+    const data = {
+      ...SAMPLE_PROFILE_DATA,
+      newFeature: {enabled: true},
+    } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
 
     expect(warnings).toHaveLength(1);
@@ -479,7 +522,7 @@ describe('validateApiSchema', () => {
   test('warns on unknown security field', () => {
     const data = {
       ...SAMPLE_PROFILE_DATA,
-      security: { ...SAMPLE_PROFILE_DATA.security, newThreatProtection: true },
+      security: {...SAMPLE_PROFILE_DATA.security, newThreatProtection: true},
     } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
 
@@ -491,7 +534,7 @@ describe('validateApiSchema', () => {
   test('warns on unknown privacy field', () => {
     const data = {
       ...SAMPLE_PROFILE_DATA,
-      privacy: { ...SAMPLE_PROFILE_DATA.privacy, newPrivacyFeature: true },
+      privacy: {...SAMPLE_PROFILE_DATA.privacy, newPrivacyFeature: true},
     } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
 
@@ -503,7 +546,10 @@ describe('validateApiSchema', () => {
   test('warns on unknown parentalControl field', () => {
     const data = {
       ...SAMPLE_PROFILE_DATA,
-      parentalControl: { ...SAMPLE_PROFILE_DATA.parentalControl, newRestriction: true },
+      parentalControl: {
+        ...SAMPLE_PROFILE_DATA.parentalControl,
+        newRestriction: true,
+      },
     } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
 
@@ -515,7 +561,7 @@ describe('validateApiSchema', () => {
   test('warns on unknown settings field', () => {
     const data = {
       ...SAMPLE_PROFILE_DATA,
-      settings: { ...SAMPLE_PROFILE_DATA.settings, newSetting: { enabled: true } },
+      settings: {...SAMPLE_PROFILE_DATA.settings, newSetting: {enabled: true}},
     } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
 
@@ -529,7 +575,7 @@ describe('validateApiSchema', () => {
       ...SAMPLE_PROFILE_DATA,
       settings: {
         ...SAMPLE_PROFILE_DATA.settings,
-        logs: { ...SAMPLE_PROFILE_DATA.settings!.logs, newLogOption: true },
+        logs: {...SAMPLE_PROFILE_DATA.settings!.logs, newLogOption: true},
       },
     } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
@@ -544,7 +590,10 @@ describe('validateApiSchema', () => {
       ...SAMPLE_PROFILE_DATA,
       settings: {
         ...SAMPLE_PROFILE_DATA.settings,
-        performance: { ...SAMPLE_PROFILE_DATA.settings!.performance, newPerfOption: true },
+        performance: {
+          ...SAMPLE_PROFILE_DATA.settings!.performance,
+          newPerfOption: true,
+        },
       },
     } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
@@ -558,8 +607,8 @@ describe('validateApiSchema', () => {
     const data = {
       ...SAMPLE_PROFILE_DATA,
       newRootField: true,
-      security: { ...SAMPLE_PROFILE_DATA.security, newSecField: true },
-      settings: { ...SAMPLE_PROFILE_DATA.settings, newSettingsField: true },
+      security: {...SAMPLE_PROFILE_DATA.security, newSecField: true},
+      settings: {...SAMPLE_PROFILE_DATA.settings, newSettingsField: true},
     } as unknown as ProfileData;
     const warnings = validateApiSchema(data);
 
@@ -579,7 +628,10 @@ describe('validateApiSchema', () => {
   });
 
   test('handles partial data', () => {
-    const data = { name: 'Test', security: { threatIntelligenceFeeds: true } } as ProfileData;
+    const data = {
+      name: 'Test',
+      security: {threatIntelligenceFeeds: true},
+    } as ProfileData;
     const warnings = validateApiSchema(data);
     expect(warnings).toHaveLength(0);
   });
@@ -590,15 +642,15 @@ describe('copyProfile', () => {
     const mockAdapter = createMockHttpAdapter();
     mockAdapter.setSideEffect((url) => {
       if (url.includes('/profiles/abc123') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+        return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
       }
       if (url.includes('/rewrites')) {
-        return { status: 200, data: { data: [] } };
+        return {status: 200, data: {data: []}};
       }
       if (url.includes('/profiles') && url.endsWith('/profiles')) {
-        return { status: 200, data: { data: { id: 'new123' } } };
+        return {status: 200, data: {data: {id: 'new123'}}};
       }
-      return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+      return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 
@@ -642,17 +694,17 @@ describe('copyProfile', () => {
 
   test('create profile returns new ID', async () => {
     const mockAdapter = createMockHttpAdapter();
-    mockAdapter.setSideEffect((url, options: { method?: string }) => {
+    mockAdapter.setSideEffect((url, options: {method?: string}) => {
       if (url.includes('/profiles/abc123') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+        return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
       }
       if (url.includes('/rewrites')) {
-        return { status: 200, data: { data: [] } };
+        return {status: 200, data: {data: []}};
       }
       if (options.method === 'POST') {
-        return { status: 200, data: { data: { id: 'new123' } } };
+        return {status: 200, data: {data: {id: 'new123'}}};
       }
-      return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+      return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 
@@ -667,14 +719,17 @@ describe('copyProfile', () => {
 
   test('creation error returns failure', async () => {
     const mockAdapter = createMockHttpAdapter();
-    mockAdapter.setSideEffect((url, options: { method?: string }) => {
+    mockAdapter.setSideEffect((url, options: {method?: string}) => {
       if (url.includes('/profiles/abc123') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: { ...SAMPLE_PROFILE_DATA, parentalControl: undefined } } };
+        return {
+          status: 200,
+          data: {data: {...SAMPLE_PROFILE_DATA, parentalControl: undefined}},
+        };
       }
       if (options.method === 'POST') {
         throw new Error('400 Bad request');
       }
-      return { status: 200, data: {} };
+      return {status: 200, data: {}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 
@@ -692,35 +747,46 @@ describe('copyProfile - rewrites', () => {
   test('successful PUT of rewrites', async () => {
     const mockAdapter = createMockHttpAdapter();
     const srcRewrites = [
-      { id: '1', name: 'test', type: 'A', content: '1.2.3.4' },
-      { id: '2', name: 'test2', type: 'CNAME', content: 'example.com' },
+      {id: '1', name: 'test', type: 'A', content: '1.2.3.4'},
+      {id: '2', name: 'test2', type: 'CNAME', content: 'example.com'},
     ];
     let putCalled = false;
     let capturedPutBody: unknown = null;
 
-    mockAdapter.setSideEffect((url, options: { method?: string; body?: string }) => {
-      if (url.includes('/profiles/src-id') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+    mockAdapter.setSideEffect(
+      (url, options: {method?: string; body?: string}) => {
+        if (url.includes('/profiles/src-id') && !url.includes('/rewrites')) {
+          return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
+        }
+        if (
+          url.includes('/profiles/src-id/rewrites') &&
+          options.method === 'GET'
+        ) {
+          return {status: 200, data: {data: srcRewrites}};
+        }
+        if (options.method === 'POST' && !url.includes('/rewrites')) {
+          return {status: 200, data: {data: {id: 'dest-id'}}};
+        }
+        if (
+          url.includes('/profiles/dest-id/rewrites') &&
+          options.method === 'PUT'
+        ) {
+          putCalled = true;
+          capturedPutBody = options.body ? JSON.parse(options.body) : null;
+          return {status: 200, data: {}};
+        }
+        if (
+          url.includes('/profiles/dest-id/rewrites') &&
+          options.method === 'GET'
+        ) {
+          return {status: 200, data: {data: []}};
+        }
+        if (url.includes('/profiles/dest-id') && !url.includes('/rewrites')) {
+          return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
+        }
+        return {status: 200, data: {}};
       }
-      if (url.includes('/profiles/src-id/rewrites') && options.method === 'GET') {
-        return { status: 200, data: { data: srcRewrites } };
-      }
-      if (options.method === 'POST' && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: { id: 'dest-id' } } };
-      }
-      if (url.includes('/profiles/dest-id/rewrites') && options.method === 'PUT') {
-        putCalled = true;
-        capturedPutBody = options.body ? JSON.parse(options.body) : null;
-        return { status: 200, data: {} };
-      }
-      if (url.includes('/profiles/dest-id/rewrites') && options.method === 'GET') {
-        return { status: 200, data: { data: [] } };
-      }
-      if (url.includes('/profiles/dest-id') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
-      }
-      return { status: 200, data: {} };
-    });
+    );
     const api = new NextDNSApi({}, mockAdapter);
 
     const result = await copyProfile(api, {
@@ -732,7 +798,7 @@ describe('copyProfile - rewrites', () => {
     expect(result.success).toBe(true);
     expect(putCalled).toBe(true);
     // Verify id and type are stripped from rewrites
-    const rewrites = capturedPutBody as { name: string; content: string }[];
+    const rewrites = capturedPutBody as {name: string; content: string}[];
     for (const rw of rewrites) {
       expect((rw as Record<string, unknown>)['id']).toBeUndefined();
       expect((rw as Record<string, unknown>)['type']).toBeUndefined();
@@ -741,20 +807,20 @@ describe('copyProfile - rewrites', () => {
 
   test('handles no rewrites found', async () => {
     const mockAdapter = createMockHttpAdapter();
-    mockAdapter.setSideEffect((url, options: { method?: string }) => {
+    mockAdapter.setSideEffect((url, options: {method?: string}) => {
       if (url.includes('/profiles/src-id') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+        return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
       }
       if (url.includes('/rewrites') && options.method !== 'PUT') {
-        return { status: 200, data: { data: [] } };
+        return {status: 200, data: {data: []}};
       }
       if (options.method === 'POST') {
-        return { status: 200, data: { data: { id: 'dest-id' } } };
+        return {status: 200, data: {data: {id: 'dest-id'}}};
       }
       if (url.includes('/profiles/dest-id') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+        return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
       }
-      return { status: 200, data: {} };
+      return {status: 200, data: {}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 
@@ -769,17 +835,17 @@ describe('copyProfile - rewrites', () => {
 
   test('handles 404 for rewrites endpoint gracefully', async () => {
     const mockAdapter = createMockHttpAdapter();
-    mockAdapter.setSideEffect((url, options: { method?: string }) => {
+    mockAdapter.setSideEffect((url, options: {method?: string}) => {
       if (url.includes('/profiles/src-id') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+        return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
       }
       if (url.includes('/rewrites')) {
         throw new Error('404 Not found');
       }
       if (options.method === 'POST') {
-        return { status: 200, data: { data: { id: 'dest-id' } } };
+        return {status: 200, data: {data: {id: 'dest-id'}}};
       }
-      return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+      return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 
@@ -794,33 +860,45 @@ describe('copyProfile - rewrites', () => {
 
   test('fallback to POST when PUT fails', async () => {
     const mockAdapter = createMockHttpAdapter();
-    const srcRewrites = [{ id: '1', name: 'test', content: '1.2.3.4' }];
+    const srcRewrites = [{id: '1', name: 'test', content: '1.2.3.4'}];
     let postCalled = false;
 
-    mockAdapter.setSideEffect((url, options: { method?: string }) => {
+    mockAdapter.setSideEffect((url, options: {method?: string}) => {
       if (url.includes('/profiles/src-id') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+        return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
       }
-      if (url.includes('/profiles/src-id/rewrites') && options.method === 'GET') {
-        return { status: 200, data: { data: srcRewrites } };
+      if (
+        url.includes('/profiles/src-id/rewrites') &&
+        options.method === 'GET'
+      ) {
+        return {status: 200, data: {data: srcRewrites}};
       }
       if (options.method === 'POST' && url.endsWith('/profiles')) {
-        return { status: 200, data: { data: { id: 'dest-id' } } };
+        return {status: 200, data: {data: {id: 'dest-id'}}};
       }
-      if (url.includes('/profiles/dest-id/rewrites') && options.method === 'PUT') {
+      if (
+        url.includes('/profiles/dest-id/rewrites') &&
+        options.method === 'PUT'
+      ) {
         throw new Error('PUT not supported');
       }
-      if (url.includes('/profiles/dest-id/rewrites') && options.method === 'POST') {
+      if (
+        url.includes('/profiles/dest-id/rewrites') &&
+        options.method === 'POST'
+      ) {
         postCalled = true;
-        return { status: 200, data: {} };
+        return {status: 200, data: {}};
       }
-      if (url.includes('/profiles/dest-id/rewrites') && options.method === 'GET') {
-        return { status: 200, data: { data: [] } };
+      if (
+        url.includes('/profiles/dest-id/rewrites') &&
+        options.method === 'GET'
+      ) {
+        return {status: 200, data: {data: []}};
       }
       if (url.includes('/profiles/dest-id') && !url.includes('/rewrites')) {
-        return { status: 200, data: { data: SAMPLE_PROFILE_DATA } };
+        return {status: 200, data: {data: SAMPLE_PROFILE_DATA}};
       }
-      return { status: 200, data: {} };
+      return {status: 200, data: {}};
     });
     const api = new NextDNSApi({}, mockAdapter);
 

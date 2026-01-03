@@ -7,12 +7,15 @@
 export * from './types.js';
 
 // API Client
-export { NextDNSApi, api, parseApiResponse } from './api.js';
-export type { ApiClientOptions, HttpAdapter } from './api.js';
+export {NextDNSApi, api, parseApiResponse} from './api.js';
+export type {ApiClientOptions, HttpAdapter} from './api.js';
 
 // Manage Domain
-export { manageDomain, getAllProfiles } from './manage-domain.js';
-export type { ManageDomainOptions, ManageDomainCallbacks } from './manage-domain.js';
+export {manageDomain, getAllProfiles} from './manage-domain.js';
+export type {
+  ManageDomainOptions,
+  ManageDomainCallbacks,
+} from './manage-domain.js';
 
 // Sync Lists
 export {
@@ -31,7 +34,7 @@ export type {
 } from './sync-lists.js';
 
 // Diff Profiles
-export { diffProfiles, formatDiffAsText } from './diff-profiles.js';
+export {diffProfiles, formatDiffAsText} from './diff-profiles.js';
 export type {
   DiffOptions,
   DiffSection,
@@ -47,4 +50,9 @@ export {
   validateApiSchema,
   reconstructPayload,
 } from './copy-profile.js';
-export type { CopyProfileOptions, CopyCallbacks, CopyResult, CopyStep } from './copy-profile.js';
+export type {
+  CopyProfileOptions,
+  CopyCallbacks,
+  CopyResult,
+  CopyStep,
+} from './copy-profile.js';
