@@ -42,7 +42,7 @@
 
 ## Features
 
-**Web App Available:** [nextdns.abhijithvijayan.in](https://nextdns.abhijithvijayan.in) - No installation required!
+**Web App Available:** [apps.nextdns.abhijithvijayan.in](https://apps.nextdns.abhijithvijayan.in) - No installation required!
 
 - **Manage domains across all profiles** - Add, remove, enable, or disable domains from allowlist/denylist across all profiles with a single command
 - **Sync denylist/allowlist across profiles** - Automatically sync domains across all profiles using majority voting
@@ -219,7 +219,7 @@ nextdns-manager copy -s "source-api-key" -d "dest-api-key" -p "a1b2c3"
 
 A Next.js web application is also available that provides a graphical interface for all CLI features.
 
-**Live Demo:** [nextdns.abhijithvijayan.in](https://nextdns.abhijithvijayan.in)
+**Live Demo:** [apps.nextdns.abhijithvijayan.in](https://apps.nextdns.abhijithvijayan.in)
 
 ### Features
 

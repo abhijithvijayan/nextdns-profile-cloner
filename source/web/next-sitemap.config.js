@@ -1,4 +1,4 @@
-const BASE_URL = 'https://nextdns.abhijithvijayan.in';
+const BASE_URL = 'https://apps.nextdns.abhijithvijayan.in';
 
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {

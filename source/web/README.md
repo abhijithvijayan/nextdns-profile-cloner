@@ -2,7 +2,7 @@
 
 A Next.js web application that provides a graphical interface for managing NextDNS profiles.
 
-**Live Demo:** [nextdns.abhijithvijayan.in](https://nextdns.abhijithvijayan.in)
+**Live Demo:** [apps.nextdns.abhijithvijayan.in](https://apps.nextdns.abhijithvijayan.in)
 
 ## Features
 
