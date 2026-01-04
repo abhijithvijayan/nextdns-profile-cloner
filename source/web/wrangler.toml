@@ -3,14 +3,22 @@ main = "worker/index.ts"
 compatibility_date = "2025-11-18"
 
 [build]
-command = "npx next telemetry disable && npm run build"
+command = "npm run build:static"
 
 [assets]
 directory = "./out"
 
 [observability]
-[observability.logs]
 enabled = false
 head_sampling_rate = 1
-invocation_logs = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
 persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1

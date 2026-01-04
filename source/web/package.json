@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
+    "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "build:static": "NEXT_TELEMETRY_DISABLED=1 npm run lint && npm run build",
     "deploy": "wrangler deploy",
     "cf:dev": "wrangler dev",
     "postbuild": "next-sitemap"
