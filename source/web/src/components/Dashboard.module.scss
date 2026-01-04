@@ -148,6 +148,12 @@
   }
 }
 
+.footer {
+  padding: 24px;
+  text-align: center;
+  border-top: 1px solid var(--color-border);
+}
+
 @media (max-width: 768px) {
   .header {
     padding: 0 16px;

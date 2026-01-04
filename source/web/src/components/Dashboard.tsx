@@ -58,7 +58,6 @@ export function Dashboard() {
         <div className={styles.headerContent}>
           <div className={styles.brand}>
             <h1>NextDNS Manager</h1>
-            <span className={styles.version}>{getFormattedVersion()}</span>
             <span className={styles.profileCount}>
               {profiles.length} profile{profiles.length !== 1 ? 's' : ''}
             </span>
@@ -109,6 +108,10 @@ export function Dashboard() {
         </div>
         {renderContent()}
       </main>
+
+      <footer className={styles.footer}>
+        <span className={styles.version}>{getFormattedVersion()}</span>
+      </footer>
     </div>
   );
 }
