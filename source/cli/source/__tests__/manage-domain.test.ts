@@ -3,10 +3,10 @@
  * Port of test_manage_domain.py
  */
 
-import {jest, describe, test, expect, beforeEach} from '@jest/globals';
+import {jest, describe, test, expect} from '@jest/globals';
 import {NextDNSApi, type HttpAdapter} from '../../../core/api';
 import {manageDomain, getAllProfiles} from '../../../core/manage-domain';
-import type {Profile, ListType, DomainAction} from '../../../core/types';
+import type {Profile} from '../../../core/types';
 
 // Sample data matching Python tests
 const SAMPLE_PROFILES: Profile[] = [
@@ -159,7 +159,6 @@ describe('manageDomain - add', () => {
 
   test('handles HTTP error when adding domain', async () => {
     const mockAdapter = createMockHttpAdapter();
-    const callCount = 0;
     mockAdapter.setSideEffect((url) => {
       if (url.includes('/profiles') && !url.includes('/allowlist')) {
         return {status: 200, data: {data: [SAMPLE_PROFILES[0]]}};

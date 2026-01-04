@@ -3,7 +3,7 @@
  * Port of test_sync_lists.py
  */
 
-import {jest, describe, test, expect, beforeEach} from '@jest/globals';
+import {jest, describe, test, expect} from '@jest/globals';
 import {NextDNSApi, type HttpAdapter} from '../../../core/api';
 import {
   analyzeSync,
@@ -13,24 +13,6 @@ import {
   type ProfileListData,
   type SyncAnalysis,
 } from '../../../core/sync-lists';
-import type {Profile, ListType} from '../../../core/types';
-
-// Sample data matching Python tests
-const SAMPLE_PROFILES: Profile[] = [
-  {id: 'abc123', name: 'Profile 1'},
-  {id: 'def456', name: 'Profile 2'},
-  {id: 'ghi789', name: 'Profile 3'},
-];
-
-const SAMPLE_PROFILE_DATA = {
-  id: 'abc123',
-  name: 'Profile 1',
-  denylist: [
-    {id: 'malware.com', active: true},
-    {id: 'ads.com', active: false},
-  ],
-  allowlist: [{id: 'trusted.com', active: true}],
-};
 
 // Mock HTTP adapter interface
 interface MockHttpAdapter extends HttpAdapter {
@@ -420,7 +402,7 @@ describe('syncLists integration', () => {
       },
     };
 
-    mockAdapter.setSideEffect((url, options: {method?: string}) => {
+    mockAdapter.setSideEffect((url) => {
       if (url.endsWith('/profiles')) {
         return {
           status: 200,

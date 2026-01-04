@@ -11,6 +11,16 @@ import {
   type DomainAction,
 } from '../../../core/index.js';
 
+function validateListType(value: string): string {
+  const valid = ['allowlist', 'denylist'];
+  if (!valid.includes(value)) {
+    throw new Error(
+      `Invalid list type '${value}'. Valid types: ${valid.join(', ')}`
+    );
+  }
+  return value;
+}
+
 export const manageCommand = new Command('manage')
   .description(
     'Manage domains in allowlist/denylist across all NextDNS profiles'
@@ -103,13 +113,3 @@ export const manageCommand = new Command('manage')
       process.exit(1);
     }
   });
-
-function validateListType(value: string): string {
-  const valid = ['allowlist', 'denylist'];
-  if (!valid.includes(value)) {
-    throw new Error(
-      `Invalid list type '${value}'. Valid types: ${valid.join(', ')}`
-    );
-  }
-  return value;
-}
