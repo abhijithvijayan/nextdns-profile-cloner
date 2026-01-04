@@ -5,7 +5,6 @@ import {useAuth} from '@/contexts/AuthContext';
 import {api} from '@/lib/api';
 import {Button} from '../Button';
 import {Card, CardHeader} from '../Card';
-import type {Profile, ProfileData} from '@/lib/types';
 import styles from './DiffProfiles.module.scss';
 
 type Section =

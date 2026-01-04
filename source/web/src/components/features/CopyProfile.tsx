@@ -6,7 +6,6 @@ import {api} from '@/lib/api';
 import {Button} from '../Button';
 import {Input} from '../Input';
 import {Card, CardHeader} from '../Card';
-import type {Profile, ProfileData} from '@/lib/types';
 import {reconstructPayload} from '@/lib/types';
 import styles from './CopyProfile.module.scss';
 
@@ -182,8 +181,6 @@ export function CopyProfile() {
       setIsCopying(false);
     }
   };
-
-  const selectedProfile = profiles.find((p) => p.id === selectedProfileId);
 
   return (
     <div className={styles.container}>

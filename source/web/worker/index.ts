@@ -6,29 +6,6 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, X-Api-Key',
 };
 
-export default {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext
-  ): Promise<Response> {
-    const url = new URL(request.url);
-
-    // Handle CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {status: 204, headers: CORS_HEADERS});
-    }
-
-    // Handle API proxy requests
-    if (url.pathname.startsWith('/api/nextdns/')) {
-      return handleApiProxy(request, url);
-    }
-
-    // For all other requests, let Cloudflare serve static assets
-    return env.ASSETS.fetch(request);
-  },
-};
-
 async function handleApiProxy(request: Request, url: URL): Promise<Response> {
   const apiKey = request.headers.get('X-Api-Key');
 
@@ -108,3 +85,28 @@ async function handleApiProxy(request: Request, url: URL): Promise<Response> {
 interface Env {
   ASSETS: Fetcher;
 }
+
+const worker = {
+  async fetch(
+    request: Request,
+    env: Env,
+    _ctx: ExecutionContext
+  ): Promise<Response> {
+    const url = new URL(request.url);
+
+    // Handle CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {status: 204, headers: CORS_HEADERS});
+    }
+
+    // Handle API proxy requests
+    if (url.pathname.startsWith('/api/nextdns/')) {
+      return handleApiProxy(request, url);
+    }
+
+    // For all other requests, let Cloudflare serve static assets
+    return env.ASSETS.fetch(request);
+  },
+};
+
+export default worker;
