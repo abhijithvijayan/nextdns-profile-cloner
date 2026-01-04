@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     'next-env.d.ts',
     // Wrangler temp files
     '.wrangler/**',
+    // Build scripts (CommonJS)
+    'scripts/**',
   ]),
   {
     files: ['**/*.ts', '**/*.tsx'],

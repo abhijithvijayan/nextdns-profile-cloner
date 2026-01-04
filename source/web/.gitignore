@@ -47,3 +47,6 @@ next-env.d.ts
 # next-sitemap
 public/sitemap*.xml
 public/robots.txt
+
+# auto-generated version file
+src/lib/version.ts

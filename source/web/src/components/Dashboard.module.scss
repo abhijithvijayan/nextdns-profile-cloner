@@ -44,6 +44,12 @@
   }
 }
 
+.version {
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  color: var(--color-text-muted);
+}
+
 .profileCount {
   font-size: 12px;
   font-weight: 500;

@@ -7,6 +7,7 @@ import {ManageDomain} from './features/ManageDomain';
 import {DiffProfiles} from './features/DiffProfiles';
 import {SyncLists} from './features/SyncLists';
 import {CopyProfile} from './features/CopyProfile';
+import {getFormattedVersion} from '@/lib/format-version';
 import styles from './Dashboard.module.scss';
 
 type Tab = 'manage' | 'diff' | 'sync' | 'copy';
@@ -57,6 +58,7 @@ export function Dashboard() {
         <div className={styles.headerContent}>
           <div className={styles.brand}>
             <h1>NextDNS Manager</h1>
+            <span className={styles.version}>{getFormattedVersion()}</span>
             <span className={styles.profileCount}>
               {profiles.length} profile{profiles.length !== 1 ? 's' : ''}
             </span>
