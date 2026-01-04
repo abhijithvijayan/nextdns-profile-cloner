@@ -16,26 +16,16 @@ try {
     gitHash = 'unknown';
 }
 
-// Get current timestamp and format it
-const buildDate = new Date();
-const formattedDate = buildDate.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-});
-const formattedTime = buildDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-});
-const formattedBuildTime = `${formattedDate} at ${formattedTime}`;
+// Get current timestamp formatted as UTC
+const now = new Date();
+const buildTimestamp = now.toISOString().slice(0, 16).replace('T', ' ');
 
 // Generate version.ts file
 const versionFileContent = `// This file is auto-generated during build
 // Do not edit manually
 export const VERSION = '${packageJson.version}';
 export const GIT_HASH = '${gitHash}';
-export const BUILD_TIME = '${formattedBuildTime}';
+export const BUILD_TIME = '${buildTimestamp}';
 `;
 
 // Write to src/lib/version.ts
@@ -43,5 +33,5 @@ const versionPath = path.join(__dirname, '../src/lib/version.ts');
 fs.writeFileSync(versionPath, versionFileContent, 'utf8');
 
 console.log(
-    `✓ Version ${packageJson.version}+${gitHash} generated (built on ${formattedBuildTime})`
+    `✓ Version ${packageJson.version}+${gitHash} generated (built at ${buildTimestamp})`
 );
